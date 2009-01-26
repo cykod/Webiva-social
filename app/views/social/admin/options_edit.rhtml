@@ -1,0 +1,16 @@
+<div class='admin_content'>
+
+<% cms_form_for :options, @options, :html => {:class =>'admin_form' } do |f| -%>
+<%= f.text_field :role_list %>
+<%= f.text_field :location_name %>
+<%= f.select :user_model_id, [['--Select Content Model--',nil]] + ContentModel.find_select_options, :label => 'Profile Content Model' %>
+<%= f.select :notification_page_id , SiteNode.page_options %>
+<%= f.end_user_selector :automatic_friend_id, :no_name => true %>
+<%= f.text_area :automatic_wall_message, :rows => 5, :cols => 40 %>
+<%= f.select :automatic_message_id, [['--Select automatic Message--','']] +  MessageTemplate.find_select_options %>
+
+<%= f.submit_tag 'Save' %>
+
+
+<% end -%>
+</div>

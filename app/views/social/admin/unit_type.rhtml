@@ -1,0 +1,23 @@
+<div class='admin_table'>
+<% admin_form_for :social_unit_type, @social_unit_type do |f| -%>
+  <%= f.text_field :name %>
+  <%= f.select :content_model_id, [['--No Content Model--',nil]] + ContentModel.select_options(:order => 'name'),:label => 'Options Content Model' %>
+  <%= f.check_box :has_location  %>
+  <%= f.check_box :has_parents  %>
+  <%= f.check_box :has_children %>
+  <%= f.check_box :auto_friend %>
+  <%= f.select :parent_type_id, [['--No Parent Type--',nil]] + SocialUnitType.select_options(:order => 'name') %>
+  <%= f.select :child_type_id, [['--No Child Type--',nil]] + SocialUnitType.select_options(:order => 'name') %>
+  
+  <%= f.text_field :category_options %>
+  
+  <%= f.radio_buttons :member_create_events, [ ['Members',true ], ['Admins Only', false] ],:label => 'Create events' %>
+  <%= f.text_field :sub_groups %>
+  <%= f.text_area :wall_post, :label => 'Automatic Wall Post' %>
+  <%= f.end_user_selector :wall_post_user_id, :no_name => true, :label => 'Wall Post User' %>
+  
+  <%= f.filemanager_image :missing_image_id %>
+  
+  <%= f.submit_tag @social_unit_type.id ? 'Edit' : 'Create' %>
+<% end -%>
+</div>

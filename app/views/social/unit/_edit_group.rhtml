@@ -1,0 +1,14 @@
+<% cms_form_for :group,group, :url => '', :html => { :enctype => 'multipart/form-data' } do |f| %>
+<%= f.header "#{group.social_unit_type.name} Information" %>
+<%= f.text_field :name, :vertical => true %>
+<%= f.upload_image :image_file_id, :vertical => true, :label => '' %>
+<% if publication -%>
+<%= f.header "#{group.social_unit_type.name} Details" %>
+  <% cms_subfields_for "entry", entry do |cf| %>
+          <%= render_publication_form publication, entry, cf, :return_page => nil, :no_buttons => true, :vertical => true  %>
+  <% end -%>
+<% end -%>
+
+<%= f.submit_tag 'Update' %>
+
+<% end -%>

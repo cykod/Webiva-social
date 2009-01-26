@@ -1,0 +1,6 @@
+
+
+class SocialUnitEvent < DomainModel
+
+
+end

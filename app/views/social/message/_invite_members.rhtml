@@ -1,0 +1,49 @@
+<script>
+
+  <%= render :partial => '/message/mailbox/message_javascript', :locals =>  { :renderer => renderer }  %>
+
+
+</script>
+
+
+<% unless ajax -%>
+<form id='social_invite_members_form' onsubmit='new Ajax.Updater("social_invite_members_form","<%= ajax_url_for(renderer) %>", { parameters: Form.serialize(this) }); return false;' >
+<% end -%>
+
+<table>
+<tr>
+<td valign='top'>
+ <%= group.image.image_tag(:preview) %>
+</td>
+<td valign='top'>
+ <% if confirmed -%>
+  <p><b>Your invitations have been sent</b></p>
+  <p>
+    <button onclick='document.location="?"; return false;'>Close Window</button>
+<% else -%>
+
+<div <%= "style='display:none;'" if friends.length == 0 %>>
+  <%= render :partial => '/message/mailbox/friend_selector', :locals => { :friends => friends, :message => message } %>
+</div>
+</td>
+<td valign='top'>
+
+<b>Invite your friends to join <%= group.name %></b>
+
+<% cms_fields_for :message, message, :url => '', :html => { :onsubmit => 'InviteMembers.submitMessage(); return false;',  :id => 'message_write_form' } do |f| -%>
+<input type='hidden' name='act' value='invite_members'/>
+<input type='hidden' name='group' value='<%= group.id %>'/>
+<input type='hidden' name='confirm' value='1'/>
+
+<%= f.autocomplete_field :recipients, ajax_url_for(renderer,:page => 'autocomplete'), :vertical => true, :label => 'Users to Invite:', :size => 40, :noun => 'A recipient', :multiple => true, :callback => 'MessageViewer.updateRecipients', :type => 'textarea',:html => { :cols => 45, :rows => 5 }  %>
+<%= f.hidden_field :recipient_ids %>
+<%= f.text_area :message, :vertical => true, :cols => 45, :rows => 8, :label => 'Add a personal message (optional):' %>
+<%= f.submit_cancel_tags 'Send','Cancel',{},{:onclick => 'RedBox.close(); return false;' } %>
+<% end -%>
+
+
+<% end -%>
+</td>
+</table>
+
+<% unless ajax -%></div><% end -%>

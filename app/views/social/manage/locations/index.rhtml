@@ -1,0 +1,12 @@
+<% action_panel do |p| -%>
+  <%= p.link 'Create Location',:action => 'edit', :icon => 'add.gif' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+
+  <div id='locations_table'>
+    <%= render :partial => 'locations_table' %>
+  </div>
+</div>

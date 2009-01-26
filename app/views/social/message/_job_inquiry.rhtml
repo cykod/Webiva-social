@@ -1,0 +1,37 @@
+<% unless ajax -%>
+<form id='social_job_inquiry_form' onsubmit='new Ajax.Updater("social_job_inquiry_form","<%= ajax_url_for(renderer) %>", { parameters: Form.serialize(this) }); return false;' >
+<% end -%>
+
+<table>
+<tr>
+<td valign='top'>
+<b><%= h posting.title %></b> <i><%= h posting.category %></i><br/>
+<%= h posting.city %>, <%= h posting.state %><br/>
+<br/>
+</td>
+</tr>
+<tr>
+<td valign='top'>
+ <% if confirmed -%>
+  <p><b>Inquiry has been submitted</b></p>
+  <p>
+    <button onclick='document.location="?"; return false;'>Close Window</button>
+<% else -%>
+
+<b>Inquire about this job:</b>
+<% cms_fields_for :message, message, :url => '', :html => { :onsubmit => 'InviteMembers.submitMessage(); return false;',  :id => 'message_write_form' } do |f| -%>
+<input type='hidden' name='act' value='job_inquiry'/>
+<input type='hidden' name='posting_id' value='<%= posting.id %>'/>
+<input type='hidden' name='confirm' value='1'/>
+
+<%= f.text_area :message, :vertical => true, :cols => 45, :rows => 8, :label => 'Add a personal message (optional):' %>
+<%= f.check_boxes :resume, [['Include a link to your resume','resume']], :label => '' if resume && resume.resume_file %>
+<%= f.submit_cancel_tags 'Send','Cancel',{},{:onclick => 'RedBox.close(); return false;' } %>
+<% end -%>
+
+
+<% end -%>
+</td>
+</table>
+
+<% unless ajax -%></div><% end -%>

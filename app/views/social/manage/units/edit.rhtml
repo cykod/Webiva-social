@@ -1,0 +1,20 @@
+<div class='admin_content'>
+<% cms_form_for :unit, @unit, :html => { :class => 'admin_form' } do |f| -%>
+  <%= f.text_field :name %>
+<% if @social_unit_type.categories.length > 0 -%>
+  <%= f.select :category, @social_unit_type.categories %>
+<% end -%>
+<% if @social_unit_type.has_parents? -%>
+  <%= f.select :parent_id, @parents, :label => @soc_opts.parent_unit_name %>
+<% end -%>
+<% if @social_unit_type.has_location? -%>
+  <%= f.select :social_location_id, @locations, :label => @soc_opts.location_name %>
+<% end -%>
+  <%= f.filemanager_image :image_file_id %>
+  <%= f.text_field :city %>
+  <%= f.text_field :state %>
+  <%= f.text_field :zip %>
+  <%= f.text_field :lead_source %>
+  <%= f.submit_tag 'Submit' %>
+<% end -%>
+</div>

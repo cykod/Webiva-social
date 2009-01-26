@@ -1,0 +1,13 @@
+<% cms_subfields_for :user,user  do |f| %>
+<%= f.header "Account Information" %>
+<% cms_subfields_for :suser,suser do |sf| -%>
+  <%= sf.select :role, Social::AdminController.module_options.roles_options, :label => 'Account Type', :vertical => true, :required => true %>
+  <%= sf.select :social_location_id, [['--No Campus Selected--',nil]] + SocialLocation.find_select_options(:all,:order =>'name'), :label => 'My Campus', :vertical => true %>
+<% end -%>
+<%= f.text_field :email, :vertical => true, :required => true %>
+<%= f.text_field :first_name, :vertical => true, :required => true %>
+<%= f.text_field :last_name, :vertical => true, :required => true %>
+<%= f.text_field :cell_phone, :vertical => true, :description => "Used for Text Messaging" %>
+<%= f.header "Personal Details" %>
+
+<% end -%>

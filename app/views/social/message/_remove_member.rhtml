@@ -1,0 +1,26 @@
+<% unless ajax -%>
+<form id='social_add_friend_form' onsubmit='new Ajax.Updater("social_add_friend_form","<%= ajax_url_for(renderer) %>", { parameters: Form.serialize(this) }); return false;' >
+<% end -%>
+<input type='hidden' name='act' value='remove_member'/>
+<input type='hidden' name='user' value='<%= user.id %>'/>
+<input type='hidden' name='group' value='<%= group.id %>'/>
+<input type='hidden' name='confirm' value='1'/>
+<table class='social_notification social_remove_member_notification'>
+<tr>
+ <td valign='top' class='social_notification_img' ><%= user.image.image_tag(:preview) %></td>
+ <td valign='center' class='social_notification_body' >
+ <% if confirmed -%>
+  <p><b><%= user.first_name %></b> has been removed</p>
+  <p>
+    <button onclick='document.location="?"; return false;'>Close Window</button>
+<% else -%>
+  <p>Remove <b><%= h user.first_name %></b> from <b><%= h group.name %></b>? </p>
+  <p><%= h user.first_name %> will be notified that they have been removed.</p>
+  <p>
+    <button onclick='$("social_add_friend_form").onsubmit(); return false;'>Remove Member</button> &nbsp;&nbsp; <button onclick='SCMS.closeOverlay(); return false;'>Cancel</button>
+  </p>
+<% end -%>
+  </td>
+</tr>
+</table>
+<% unless ajax -%></form><% end -%>

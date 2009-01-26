@@ -1,0 +1,10 @@
+<% active_table_for :unit_wall_table,@wall_tbl,
+    :refresh_url => url_for(:action => 'display_unit_wall_table',:path => [ @social_unit_type.id,@unit.id ] ),
+    :actions => [['Delete','delete','Remove selected entries?']] do |t| -%>
+<tr <%= highlight_row 'wall_entry',t.id %>>
+  <td><%= entry_checkbox 'wall_entry',t.id %></td>
+  <td><%= h t.end_user.name %></td>
+  <td><%= t.created_at.strftime(DEFAULT_DATE_FORMAT.t) %></td>
+  <td><%= simple_format(v(t.message)) %></td>
+</tr>
+<% end -%>

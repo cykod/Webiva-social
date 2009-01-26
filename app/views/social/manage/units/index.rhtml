@@ -1,0 +1,11 @@
+<% action_panel do |p| -%>
+  <%= p.link "Add " + @social_unit_type.name, :action => 'edit', :icon => 'add.gif', :path => [ @social_unit_type.id ] %>
+<% end %>
+
+<hr/>
+
+<div class='admin_content'>
+  <div id='units_table'>
+    <%= render :partial => 'units_table' %>
+  </div>
+</div>

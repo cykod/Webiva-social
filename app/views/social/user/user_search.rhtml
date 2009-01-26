@@ -1,0 +1,8 @@
+<div class='cms_form'>
+<% paragraph_options_form_for :user_search do |f| -%>
+  <%= f.page_selector :profile_page_id %>
+  <%= f.select :social_unit_type_id, SocialUnitType.select_options(:order => 'name'),:label => 'Type to display' %>
+  <%= f.select :profile_id, [['--All Profiles--',nil]] + UserClass.options %>
+<% end -%>
+
+</div>

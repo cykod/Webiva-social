@@ -1,0 +1,10 @@
+<div class='admin_content'>
+<% cms_form_for :location, @location, :html => { :class => 'admin_form' } do |f| -%>
+  <%= f.text_field :name  %>
+  <%= f.text_field :city  %>
+  <%= f.text_field :state  %>
+  <%= f.text_field :zip  %>
+  <%= f.submit_tag 'Submit' %>
+
+<% end -%>
+</div>

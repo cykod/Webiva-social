@@ -1,0 +1,20 @@
+<% active_table_for :units_table, @tbl, 
+    :refresh_url => url_for(:action => 'display_units_table',:path => [ @social_unit_type.id ]),
+    :actions => [['Approve','approve','Approve the selected groups?'], 
+                 ['Unapprove','unapprove','Unapprove the selected groups?']],
+    :more_actions => [['Delete','delete','Delete selected?']] do |t| -%>
+<tr <%= highlight_row 'unit',t.id %>>
+  <td><%= entry_checkbox 'unit', t.id %></td>
+  <td><%= link_to theme_image_tag('icons/table_actions/edit.gif'), :action => 'edit', :path => [  @social_unit_type.id,t.id ] %></td>
+  <td><%= link_to v(t.name), :action => 'view', :path => [  @social_unit_type.id,t.id ] %></td>
+  <td><%= v(t.social_location.name) if t.social_location %></td>
+  <td><%= v(t.category) %></td>
+<% if @social_unit_type.has_parents?  %>
+  <td><%= v(t.parent.name) if t.parent %></td>
+<% end -%>
+  <td><%= t.created_at.strftime(DEFAULT_DATE_FORMAT.t) %></td>
+  <td><%= t.updated_at.strftime(DEFAULT_DATE_FORMAT.t) %></td>
+  <td><%= t.approved? ? 'Yes' : 'No' %>
+  <td><%= v t.lead_source %></td>
+</tr>
+<% end -%>

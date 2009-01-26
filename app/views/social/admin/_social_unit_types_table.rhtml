@@ -1,0 +1,8 @@
+<% active_table_for :social_unit_types_type, @tbl do |t| -%>
+<tr <%= highlight_row 'unit_type',t.id %>>
+  <td><%= entry_checkbox 'unit_type',t.id %></td>
+  <td><%= link_to h(t.name), :action => 'unit_type',:path => [ t.id ] %></td>
+  <td><%= t.has_parents? ? 'Yes' : 'No' %></td>
+  <td><%= t.has_children? ? 'Yes' : 'No' %></td>
+</tr>  
+<% end -%>

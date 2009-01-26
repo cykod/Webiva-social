@@ -1,0 +1,6 @@
+
+
+class SocialPicture < DomainModel
+
+
+end

@@ -1,0 +1,6 @@
+<% cms_form_for :group,group, :url => '', :html => { :enctype => 'multipart/form-data' } do |f| %>
+<%= f.text_field :name, :vertical => true %>
+<%= f.upload_image :image_file_id, :vertical => true, :label => '' %>
+<%= f.radio_buttons :social_location_id, [['Campus Group',location.id],["National Group",nil]] if location %>
+<%= f.submit_tag 'Create' %>
+<% end -%>

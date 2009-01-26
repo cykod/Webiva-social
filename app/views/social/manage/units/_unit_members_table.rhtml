@@ -1,0 +1,13 @@
+<% active_table_for :unit_members_table, @tbl,
+    :refresh_url => url_for(:action => 'display_unit_members_table',:path => [ @social_unit_type.id,@unit.id ] ),
+    :actions => [['Make Admin','admin','Make the selected members administrators?'],
+                 ['Make Regular Member','member','Make the selected members regular users?']],
+    :more_actions => [['Remove','remove','Remove selected members?']] do |t| -%>
+<tr <%= highlight_row 'member',t.end_user_id %>>
+  <td><%= entry_checkbox 'member',t.end_user_id %></td>
+  <td><%= link_to t.end_user.name, :controller => '/members', :action => 'view', :path => [ t.end_user_id ] %></td>
+  <td><%= t.role_display %></td>
+  <td><%= t.created_at.strftime(DEFAULT_DATE_FORMAT.t) %></td>
+  <td><%= t.updated_at.strftime(DEFAULT_DATE_FORMAT.t) %></td>
+</tr>
+<% end -%>

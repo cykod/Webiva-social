@@ -1,0 +1,8 @@
+<div class='cms_form'>
+<% paragraph_options_form_for :friend_groups do |f| -%>
+  <%= f.select :social_unit_type_id, SocialUnitType.find_select_options %>
+  <%= f.page_selector :friends_page_id  %>
+  <%= f.text_field :limit -%>
+<% end -%>
+
+</div>

@@ -1,0 +1,12 @@
+<% active_table_for :locations_table, @tbl do |t| -%>
+<tr <%= highlight_row 'location', t.id %>>
+  <td><%= entry_checkbox 'location',t.id %></td>
+  <td><%= link_to  v(t.name), :action => 'edit', :path => [ t.id]  %></td>
+  <td><%= v t.city %></td>
+  <td><%= v t.state %></td>
+  <td><%= v t.zip %></td>
+  <td><%= v t.created_at.strftime(DEFAULT_DATE_FORMAT.t) if t.created_at %></td>
+  <td><%= v t.updated_at.strftime(DEFAULT_DATE_FORMAT.t) if t.updated_at  %></td>
+</tr>
+
+<% end -%>

@@ -1,0 +1,12 @@
+<% action_panel do |p| -%>
+  <%= p.link "Create new Unit Type",:icon => 'add.gif',:action => 'unit_type' %>
+  <%= p.link "Social Options", :icon => 'configure.gif', :action => 'options_edit' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+  <div id='social_unit_types_table'>
+    <%= render :partial => 'social_unit_types_table' %>
+  </div>
+</div>

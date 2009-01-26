@@ -1,0 +1,64 @@
+<script>
+var ChapterViewer = {
+  addUser: function() {
+    if(!$('add_member_member_id').value) {
+     alert('Please select a valid user by selecting an account from the dropdown list');
+    }
+    else {
+      ActiveTable.refresh('unit_members_table',
+          "<%= url_for :action => 'add_member', :path => [ @social_unit_type.id,@unit.id ] %>",
+          "unit_members_table",
+          {user_id:$('add_member_member_id').value,admin: $('add_member_admin').checked });
+      $('add_member_member').value = '';
+    }
+  }
+  
+  
+}
+
+</script>
+
+<% action_panel do |p| -%>
+  <% p.custom do -%>
+  <div style='position:relative; z-index:200;'>
+    <% cms_unstyled_fields_for :add_member do |f| -%>
+      <%= f.end_user_selector :member %>
+      <label><%= f.check_box :admin %> Admin</label>
+      <button onclick='ChapterViewer.addUser(); return false;'>Add Member</button>
+    <% end -%>
+  </div>
+  <% end -%>
+  <%= p.link 'Edit ' + @social_unit_type.name, :action => 'edit',:icon => 'edit.gif', :path => [ @social_unit_type.id,@unit.id ],:right => 'true' -%>
+<% end -%>  
+
+<hr/>
+
+
+
+
+<% ajax_tabs [ 'Members','Wall' ], 'Members' do |t| -%>
+
+<% t.tab do -%>
+<div class='admin_content'>
+
+
+  <div id='unit_members_table'>
+    <%= render :partial => 'unit_members_table' %>
+  </div>
+</div>
+<% end -%>
+
+<% t.tab do -%>
+<div class='admin_content'>
+
+  <div id='unit_wall_table'>
+    <%= render :partial => 'unit_wall_table' %>
+  </div>
+
+</div>
+<% end -%>
+
+
+<% end -%>
+
+

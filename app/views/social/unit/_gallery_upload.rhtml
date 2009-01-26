@@ -1,0 +1,9 @@
+  <iframe id='upload_file_frame_<%= paragraph.id %>' name='upload_file_frame_<%= paragraph.id %>' src="" style="width:0;height:0;border:0px solid #fff;"></iframe>
+  <% cms_form_for :upload, upload, 
+        :url => ajax_url_for(renderer),
+        :html => { :enctype => 'multipart/form-data',
+                   :onsubmit => 'this.target = "upload_file_frame";' } do |f| -%>
+    <%= f.upload_image :domain_file_id, :label => 'File',:label => '',:vertical => true %>
+    <%= f.text_field :name, :label => 'Caption',:vertical => true %>
+    <%= f.submit_cancel_tags 'Upload','Cancel', {}, { :onclick => 'RedBox.close();' } %>
+  <% end -%>

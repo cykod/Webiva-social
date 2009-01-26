@@ -1,0 +1,25 @@
+<% unless ajax -%>
+<form id='social_add_friend_form' onsubmit='new Ajax.Updater("social_add_friend_form","<%= ajax_url_for(renderer) %>", { parameters: Form.serialize(this) }); return false;' >
+<% end -%>
+<input type='hidden' name='act' value='add_friend'/>
+<input type='hidden' name='friend' value='<%= user.id %>'/>
+<input type='hidden' name='confirm' value='1'/>
+<table class='social_notification social_add_friend_notification'>
+<tr>
+ <td valign='top' class='social_notification_img' ><%= user.image.image_tag(:preview) %></td>
+ <td valign='center' class='social_notification_body' >
+ <% if confirmed -%>
+  <p><b><%= user.first_name %></b> has been sent a message</p>
+  <p>
+    <button onclick='document.location="?"; return false;'>Close Window</button>
+<% else -%>
+  <p>Add <b><%= user.first_name %></b> as a friend?</p>
+  <p><%= user.first_name %> will need to confirm that you know each other to continue.</p>
+  <p>
+    <button onclick='$("social_add_friend_form").onsubmit(); return false;'>Add as Friend</button> &nbsp;&nbsp; <button onclick='SCMS.closeOverlay(); return false;'>Cancel</button>
+  </p>
+<% end -%>
+  </td>
+</tr>
+</table>
+<% unless ajax -%></form><% end -%>

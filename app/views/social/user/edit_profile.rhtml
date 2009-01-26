@@ -1,0 +1,7 @@
+<div class='cms_form'>
+<% paragraph_options_form_for :edit_profile do |f| -%>
+  <%= f.select :content_publication_id, @publications %>
+  <%= f.page_selector :profile_page_id, :label => 'After Edit Page' %>
+<% end -%>
+
+</div>

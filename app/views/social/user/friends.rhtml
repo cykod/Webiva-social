@@ -1,0 +1,9 @@
+<div class='cms_form'>
+<% paragraph_options_form_for :friends do |f| -%>
+  <%= f.select :profile_page_id, SiteNode.page_options -%>
+  <%= f.radio_buttons :grouped, [['Yes','yes'],['No','no']], :label => 'Show Grouped' %>
+  <%= f.text_field :limit, :label => 'Limit Per Group' %>
+  <%= f.select :order, @options.class.order_select_options %>
+<% end -%>
+
+</div>
