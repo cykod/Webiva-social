@@ -16,6 +16,7 @@ class SocialUnit < DomainModel
   has_many :end_users, :class_name => 'EndUser', :through => :members, :source => :end_user
   has_many :members, :class_name => 'SocialUnitMember'
   has_many :child_members, :class_name => 'SocialUnitMember', :foreign_key => 'social_unit_parent_id'
+  has_many :child_end_users, :class_name => 'EndUser', :through => :child_members, :source => :end_user
 
   belongs_to :image_file, :class_name => 'DomainFile'
   
@@ -27,9 +28,13 @@ class SocialUnit < DomainModel
 
   def users(sub_group=nil)
    if !sub_group
-    self.end_users
+    if self.social_unit_type.child_message?
+      self.end_users + self.child_end_users
+    else
+      self.end_users
+    end
    else
-    self.members.find(:all,:conditions => ['status=?',sub_group]).map(&:end_user)
+    self.members.find(:all,:conditions => ['status=?',sub_group]).map(&:end_user).compact
    end 
   end
   
