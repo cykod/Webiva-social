@@ -46,6 +46,10 @@ class SocialUnit < DomainModel
     end    
   end
   
+  def class_name
+    self.social_unit_type.name
+  end
+  
   
   def after_create
     if self.social_unit_type && !self.social_unit_type.wall_post.blank?
