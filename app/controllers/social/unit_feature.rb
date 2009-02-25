@@ -50,7 +50,7 @@ class Social::UnitFeature < ParagraphFeature
           define_group_tags(c,data)
       c.form_for_tag('selector',:select) { |t| LocationSelector.new(data[:selector]) }
           c.field_tag('selector:state',:control => 'select',
-                :onchange => "if(this.value!='') new Ajax.Updater('select_location_wrapper','#{ajax_url}?select[state]=' + this.value);", :options =>  [['-State-',nil]] + ContentModel.state_select_options)
+                :onchange => "if(this.value!='') new Ajax.Updater('select_location_wrapper','#{ajax_url}?select[state]=' + this.value);", :options =>  [['-State-',nil]] + ContentModel.state_select_options(true))
           c.field_tag('selector:location',:control => 'select', :options => data[:location_options],
              :onchange => "if(this.value!='') document.location = '#{data[:url]}/' + this.value;") { |t,content| "<span id='select_location_wrapper'>" + content + "</span>" }
           c.submit_tag('update_butt',:default => 'Update')
