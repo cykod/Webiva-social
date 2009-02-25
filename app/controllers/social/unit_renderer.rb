@@ -11,6 +11,7 @@ class Social::UnitRenderer < Social::SocialRenderer
   paragraph :members
   paragraph :gallery_upload, :ajax => true
   paragraph :create_group
+  paragraph :member_location
 
   def location
     @options = paragraph_options(:location)
@@ -232,6 +233,47 @@ class Social::UnitRenderer < Social::SocialRenderer
 
     data = { :admin => is_admin, :group => @group, :members => @members, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
     render_paragraph :text => social_unit_members_feature(data)
+  
+  end
+  
+  def member_location
+
+    @options = paragraph_options(:member_location)
+    
+    conn_type,conn_id = page_connection
+    if conn_type == :group_id
+      @unit = SocialUnit.find_by_id(conn_id)
+    elsif conn_type == :social_unit
+      @unit = conn_id
+    end
+    
+    unless @unit
+      render_paragraph :text => ''
+      return
+    end
+    
+    groups  = SocialUnitMember.count(:all,:conditions => { :social_unit_parent_id => @unit.id }, :group => :social_unit_id)
+    
+    
+    units = SocialUnit.find(:all,:include => :social_location, :conditions => { :id => groups.map { |elm| elm[0] } } ).index_by(&:id)
+    
+    groups_data = groups.collect do |group|
+      if units[group[0].to_i]
+        [ units[group[0].to_i], units[group[0].to_i].social_location, group[1] ]
+      else
+        nil
+      end
+    end.compact
+
+    groups_data.sort! { |a,b| b[2] <=> a[2] }
+    if @options.limit.to_i > 0
+      groups_data = groups_data.slice(0..@options.limit.to_i)
+    end
+
+    
+    data = { :user => @user, :groups => groups_data, :group_page_url => @options.group_page_url }
+        
+    render_paragraph :text => social_unit_member_location_feature(data)
   
   end
   

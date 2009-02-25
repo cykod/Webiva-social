@@ -32,7 +32,7 @@ class Social::Manage::UnitsController < ModuleController
               (@social_unit_type.has_parents? ? [  self.class.hdr(:order,'parent_id',:label => @social_unit_type.parent_name) ] : []) +
               [  self.class.hdr(:date,'created_at',:label => 'Created'),
                 self.class.hdr(:date,'updated_at',:label => 'Updated'),
-                self.class.hdr(:boolean,'approved'),
+                self.class.hdr(:boolean,'social_units.approved'),
                 self.class.hdr(:string,'lead_source',:label => 'Src.')
               ] 
                 

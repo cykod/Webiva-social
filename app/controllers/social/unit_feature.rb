@@ -222,4 +222,26 @@ class Social::UnitFeature < ParagraphFeature
     end
   end
   
+  feature :social_unit_member_location, :default_feature => <<-FEATURE
+    <cms:groups>
+    <cms:group>
+      <cms:group_link><cms:location/> (<cms:count/>)</cms:group_link><br/>
+    </cms:group>
+    </cms:groups>
+  FEATURE
+  
+  def social_unit_member_location_feature(data)
+    webiva_feature(:social_unit_member_location) do |c|
+      c.define_tag('user_id') { |t| data[:user].id }
+      c.loop_tag('group') { |t|  data[:groups] }
+      c.value_tag('group:name') { |t| t.locals.group[0].name }
+      c.value_tag('group:location') { |t| t.locals.group[1] ? t.locals.group[1].name : nil   }
+      c.value_tag('group:city') { |t| t.locals.group[1] ? t.locals.group[1].city : nil   }
+      c.value_tag('group:state') { |t| t.locals.group[1] ? t.locals.group[1].state : nil   }
+      c.value_tag('group:count') { |t| t.locals.group[2]  }
+      c.link_tag('group:group') { |t| "#{data[:group_page_url]}/#{t.locals.group[0].id}" }
+    end
+  
+  end  
+  
 end

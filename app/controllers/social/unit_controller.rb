@@ -14,6 +14,9 @@ class Social::UnitController < ParagraphController
   
   editor_for :members, :name => 'Members Display', :inputs => [ [ :group_id, 'Group ID', :path ], [:social_unit,'Social Unit Public',:social_unit ] ], :features => [[ :social_unit_members ]] 
   
+  
+  editor_for :member_location, :name => 'Member Locations', :inputs => [ [ :group_id, 'Group ID', :path ], [:social_unit,'Social Public',:social_unit ] ], :features => [[ :social_unit_member_location ]] 
+  
   class LocationOptions < HashModel
     attributes :display => 'own', :group_url_id => nil,:social_unit_type_id => 0
     
@@ -60,6 +63,12 @@ class Social::UnitController < ParagraphController
     
     integer_options :profile_page_id
     
+  end
+  
+  class MemberLocationOptions < HashModel
+      attributes :group_page_id => nil, :limit => 5
+      integer_options :limit  
+      page_options :group_page_id
   end
   
 end
