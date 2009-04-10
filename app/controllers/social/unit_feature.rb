@@ -112,6 +112,10 @@ class Social::UnitFeature < ParagraphFeature
         end
       end
       
+      c.expansion_tag('group:blog') do |t|
+        Blog::BlogBlog.find_by_target_type_and_target_id('SocialUnit',t.locals.group.id)
+      end
+      
       define_group_tags(c,data)
     end
   end
