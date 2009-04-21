@@ -22,6 +22,11 @@ class  Social::UserFeature < ParagraphFeature
       c.define_expansion_tag('user') { |tag| data[:user] }
           c.define_expansion_tag('user:private') { |tag| data[:private] }
           
+          c.expansion_tag('user:blog') do |t|
+            Blog::BlogBlog.find_by_target_type_and_target_id('EndUser',data[:user])
+          end
+          
+          
           c.define_expansion_tag('user:myself') { |tag| data[:myself] }
           define_profile_tags(c,data)
           c.define_tag("user:social_unit") { |tag| c.each_local_value(data[:social_unit_members],tag,'member') }
