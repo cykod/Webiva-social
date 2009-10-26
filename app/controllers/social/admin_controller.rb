@@ -18,7 +18,7 @@ class Social::AdminController < ModuleController
   cms_admin_paths "options",
                    "Options" =>   { :controller => '/options' },
                    "Modules" =>  { :controller => '/modules' },
-                   "Social Options" => { :action => 'index' }
+                   "Social Options" => { :action => 'options' }
  
   content_model :social
   
@@ -33,12 +33,15 @@ class Social::AdminController < ModuleController
   
   def self.get_social_info
     opts = module_options
-    SocialUnitType.find(:all,:order =>'name').map do |ut|
+    models = SocialUnitType.find(:all,:order =>'name').map do |ut|
         {:name => "Manage #{ut.name.pluralize}",:url => { :controller => '/social/manage/units', :path => [ ut.id ] }, :permission => 'social_manage_groups' }
-    end +
-    [
-     {:name => "Manage #{opts.location_name} Locations",:url => { :controller => '/social/manage/locations' } ,:permission => 'social_manage' },
-    ]
+    end
+
+    if opts.show_locations
+     models << {:name => "Manage #{opts.location_name} Locations",:url => { :controller => '/social/manage/locations' } ,:permission => 'social_manage' } 
+    end
+
+    models
   end
   
  public 
@@ -91,7 +94,9 @@ class Social::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :location_name => 'Campus', :user_model_id => nil, :notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_wall_message => nil, :automatic_message_id => nil
+    attributes :location_name => 'Campus', :user_model_id => nil, :notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_wall_message => nil, :automatic_message_id => nil, :show_locations => true
+
+    boolean_options :show_locations
     
     integer_options :user_model_id, :notification_page_id, :automatic_friend_id,:automatic_message_id
     

@@ -13,9 +13,10 @@ class InitialSocialTable < ActiveRecord::Migration
       t.string :name
       t.boolean :has_parents,:default => false
       t.boolean :has_children, :default => false
-      t.integer :content_publication_id
+      t.integer :content_model_id
       t.integer :parent_type_id
       t.integer :child_type_id
+      t.boolean :has_location, :default => true
       t.string :category_options
     end
     

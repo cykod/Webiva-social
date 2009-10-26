@@ -11,6 +11,7 @@
   <%= f.select :social_location_id, @locations, :label => @soc_opts.location_name %>
 <% end -%>
   <%= f.filemanager_image :image_file_id %>
+  <%= f.text_field :address %>
   <%= f.text_field :city %>
   <%= f.text_field :state %>
   <%= f.text_field :zip %>
