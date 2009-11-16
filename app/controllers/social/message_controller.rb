@@ -6,7 +6,7 @@ class Social::MessageController < ParagraphController
   
   editor_for :wall, :name => 'Messaging Wall', :inputs => [ [ :wall_target, 'Wall Target', :target ] ], :no_options => true, :features => [ :social_message_wall ]
   
-  editor_for :notify, :name => 'Social Notification'
+  editor_for :notify, :name => 'Social Notification', :no_options => true
 
   class WallOptions < HashModel
     attributes :per_page => 20
