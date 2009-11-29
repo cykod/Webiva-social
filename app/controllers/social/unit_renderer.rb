@@ -230,6 +230,7 @@ class Social::UnitRenderer < Social::SocialRenderer
       is_admin = @group.is_admin?(myself)
     end
     
+    require_ajax_js
 
     data = { :admin => is_admin, :group => @group, :members => @members, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
     render_paragraph :text => social_unit_members_feature(data)

@@ -25,7 +25,13 @@ class Social::AdminController < ModuleController
   register_handler :members, :view,  "Social::Manage::UserController"
   
   register_handler :model, :gallery_image, "Social::GalleryExtension", :actions => [ :after_save, :before_destroy ] 
+
+  register_handler :shop, :product_feature, "Social::UnitActivation"
+
   
+  register_handler :editor, :auth_user_register_feature, "Social::UserRegisterExtension"
+  register_handler :editor, :auth_user_register_feature, "Social::UserRegisterInviteExtension"
+
   linked_models :end_user, 
                 [ :social_user, :social_unit_member, :social_friend, [ :social_friend, :friend_user_id ] ]
   

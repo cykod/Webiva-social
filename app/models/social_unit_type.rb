@@ -5,6 +5,7 @@ class SocialUnitType < DomainModel
   
   belongs_to :parent_type,:class_name => 'SocialUnitType',:foreign_key => 'parent_type_id'
 
+  belongs_to :access_token
 
   belongs_to :content_model
   

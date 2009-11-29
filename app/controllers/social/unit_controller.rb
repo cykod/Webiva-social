@@ -58,7 +58,7 @@ class Social::UnitController < ParagraphController
     page_options :success_page_id
   end
   
-  class MemberOptions < HashModel
+  class MembersOptions < HashModel
     attributes :profile_page_id =>nil, :per_page => 10, :status => ''
     
     integer_options :profile_page_id

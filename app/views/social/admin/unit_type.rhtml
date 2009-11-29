@@ -2,6 +2,7 @@
 <% admin_form_for :social_unit_type, @social_unit_type do |f| -%>
   <%= f.text_field :name %>
   <%= f.select :content_model_id, [['--No Content Model--',nil]] + ContentModel.select_options(:order => 'name'),:label => 'Options Content Model' %>
+  <%= f.select :access_token_id, [['--Select Token--',nil]] + AccessToken.user_token_options, :description => 'Automatically add this token to all users who are added as a member'  -%>
   <%= f.check_box :has_location  %>
   <%= f.check_box :has_parents  %>
   <%= f.check_box :has_children %>

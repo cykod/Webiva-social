@@ -1,6 +1,6 @@
 <script>
 
-  <%= render :partial => '/message/mailbox/message_javascript', :locals =>  { :renderer => renderer }  %>
+  <%= render :partial => '/message/mailbox/message_javascript', :locals =>  { :renderer => renderer, :overlay => true }  %>
 
 
 </script>
@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign='top'>
- <%= group.image.image_tag(:preview) %>
+ <%= group.image.image_tag(:preview) if group.image %>
 </td>
 <td valign='top'>
  <% if confirmed -%>

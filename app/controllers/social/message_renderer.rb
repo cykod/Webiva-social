@@ -76,7 +76,7 @@ class Social::MessageRenderer < Social::SocialRenderer
       display_autocomplete
       return
     end
-    
+
     case params[:act]
     when 'add_friend': add_friend
     when 'remove_member': remove_member
@@ -183,6 +183,7 @@ class Social::MessageRenderer < Social::SocialRenderer
   
   def invite_members
     @group = SocialUnit.find_by_id(params[:group])
+
     if @group && @group.is_admin?(myself)
       @confirmed = params[:confirm] ? true : false
       

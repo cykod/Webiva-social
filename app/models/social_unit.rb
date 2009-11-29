@@ -22,6 +22,8 @@ class SocialUnit < DomainModel
   
   belongs_to :social_unit_type
 
+ 
+
   validates_presence_of :name
 #  validates_uniqueness_of :name, :scope => [ :social_location_id, :social_unit_type_id ], :message => 'has already been taken'
 
@@ -72,6 +74,9 @@ class SocialUnit < DomainModel
     if !member
       member = self.social_unit_members.create(:end_user => usr,:role => role, :status => status)
       member.create_friends! if self.social_unit_type && self.social_unit_type.auto_friend?
+      if self.social_unit_type.access_token
+        usr.add_token!(self.social_unit_type.access_token,:target => self)
+      end
       return member
     else
       member.update_attributes(:role => role ? role : member.role, :status => status ? status : member.status )
@@ -149,6 +154,11 @@ class SocialUnit < DomainModel
       invite.update_attribute(:admin_invite,true)
      end
   end
+
+  # Helper method for token validation
+  def token_valid?
+    self.approved? && (self.approved_until.blank? || self.approved_until > Time.now)
+  end
   
 
   
@@ -158,7 +168,7 @@ class SocialUnit < DomainModel
       
       if member
         response = MessageTemplate.create_message('member_accepted',nil,{ :group_name => self.name })
-        response.send_notification(usr)
+        response.send_notification(usr) if response
       end
     end
   end

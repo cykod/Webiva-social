@@ -1,0 +1,4 @@
+<%= f.select :social_unit_type_id, SocialUnitType.select_options_with_nil -%>
+<%= f.radio_buttons :approved, [['Yes',true],['No',false]]  -%>
+<%= f.text_field :approved_for_days -%>
+
