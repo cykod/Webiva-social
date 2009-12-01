@@ -11,11 +11,15 @@
   <%= f.select :social_location_id, @locations, :label => @soc_opts.location_name %>
 <% end -%>
   <%= f.filemanager_image :image_file_id %>
+  <%= f.text_field :website -%>
   <%= f.text_field :address %>
   <%= f.text_field :city %>
   <%= f.text_field :state %>
   <%= f.text_field :zip %>
   <%= f.text_field :lead_source %>
+  <%= f.header 'Approval' -%> 
+  <%= f.radio_buttons :approved, [['Yes',true],['No',false]] -%>
+  <%= f.date_field :approved_until, :blank => true -%>
   <%= f.submit_tag 'Submit' %>
 <% end -%>
 </div>
