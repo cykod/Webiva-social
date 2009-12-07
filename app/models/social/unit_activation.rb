@@ -12,7 +12,7 @@ class Social::UnitActivation < Shop::ProductFeature
   def purchase(user,order_item,session)
     if @options.social_unit_type_id
       @susr = SocialUser.user(user)
-      @group = @suser.social_units(@options.social_unit_type_id)[0]
+      @group = @susr.social_units(@options.social_unit_type_id)[0]
 
       if @group
         @group.update_attributes(:approved => true,
