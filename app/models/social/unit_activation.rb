@@ -23,7 +23,7 @@ class Social::UnitActivation < Shop::ProductFeature
 
   def stock(opts,user)
     @susr = SocialUser.user(user)
-    @group = @suser.social_units(@options.social_unit_type_id)[0]
+    @group = @susr.social_units(@options.social_unit_type_id)[0]
 
 
     # No group - can't register

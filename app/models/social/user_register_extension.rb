@@ -82,7 +82,7 @@ class Social::UserRegisterExtension < Handlers::ParagraphFormExtension
 
     validates_presence_of :name
 
-    validates_format_of :website, :with => /^https?\:\/\//, :message => 'should be a full-url beginning with http'
+    validates_format_of :website, :with => /^https?\:\/\/.+/, :message => 'should be a full-url beginning with http'
 
     def validate
       if SocialUnit.find_by_name_and_social_unit_type_id(self.name.to_s.strip,self.options.social_unit_type_id)
