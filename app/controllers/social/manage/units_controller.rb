@@ -52,7 +52,7 @@ class Social::Manage::UnitsController < ModuleController
     
     
     
-    @tbl =  active_table_generate('units_table',SocialUnit,columns,{},params,{  :order => 'social_units.name', :conditions => [ 'social_unit_type_id=?',@social_unit_type.id], :joins => " LEFT JOIN social_locations ON (social_locations.id = social_units.social_location_id)" })  
+    @tbl =  active_table_generate('units_table',SocialUnit,columns,{},params,{  :order => 'social_units.created_at DESC', :conditions => [ 'social_unit_type_id=?',@social_unit_type.id], :joins => " LEFT JOIN social_locations ON (social_locations.id = social_units.social_location_id)" })  
 
   
     render :partial => 'units_table' if display
