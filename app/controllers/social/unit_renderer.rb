@@ -9,7 +9,6 @@ class Social::UnitRenderer < Social::SocialRenderer
   paragraph :group
   paragraph :edit_group
   paragraph :members
-  paragraph :gallery_upload, :ajax => true
   paragraph :create_group
   paragraph :member_location
 

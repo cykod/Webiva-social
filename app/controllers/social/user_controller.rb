@@ -4,10 +4,13 @@ class Social::UserController < ParagraphController
 
   editor_header 'Social Networking Paragraphs'
 
-  editor_for :view_profile, :name => 'View User Profile', :inputs => [ [ :user_id, 'Profile User Id', :path ] ], :features => [ :social_view_profile ], :outputs => [ [:user,'Public Profile User',:target ], [:user_private,'Private Profile User',:target ], [:social_user,"Social User Private",:target], [:containers,"Target List",:target_list ]]
+  editor_for :view_profile, :name => 'View User Profile', :inputs => [ [ :profile_entry_url, 'Profile User URL', :path ] ], :feature =>  :social_view_profile, 
+    :outputs => [ [:user,'Public Profile User',:target ], 
+                  [:user_private,'Private Profile User',:target ], 
+                  [:social_user,"Social User Private",:target], 
+                  [:content_list,"Friend and Group List",:content_list ],
+                  [:content_list_private,"Friend and Group list Private",:content_list] ]
   
-  editor_for :edit_profile, :features => [ :social_user_edit_profile ]
-
   editor_for :friends, :name => 'User Friends', :inputs => [[ :user_id, 'User Id', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_friends ]
   
   editor_for :friend_groups, :name => 'Friend Groups', :inputs => [[ :user_id, 'User Id', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_user_friend_groups ]
@@ -15,51 +18,33 @@ class Social::UserController < ParagraphController
   editor_for :user_search, :name => 'User Search', :features => [ :social_user_search ]
   
   class ViewProfileOptions < HashModel
-    attributes :social_unit_type_id => nil, :group_page_id => nil
-    
-    integer_options :social_unit_type_id,:group_page_id
-    
+    attributes :social_unit_type_id => nil, :group_page_id => nil, :profile_type_id => nil,:include_groups => true
     page_options :group_page_id
+
+    validates_presence_of :profile_type_id
+
+    canonical_paragraph "UserProfileType", :profile_type_id
+
+    options_form fld(:social_unit_type_id,:select,:options => :social_unit_types, :label => 'Primary Group Type'),
+                 fld(:group_page_id,:page_selector, :label => 'Primary Group Page'),
+                 fld(:profile_type_id,:select, :options => :profile_type_options),
+                 fld(:include_groups,:yes_no)
+
+    def social_unit_types; SocialUnitType.select_options_with_nil; end
+    def profile_type_options; UserProfileType.select_options_with_nil; end
   end
 
-  def edit_profile
-    @options = EditProfileOptions.new(params[:edit_profile] || paragraph.data || {})
-    
-    return if handle_paragraph_update(@options)
-    
-    opts = Social::AdminController.module_options
-    
-    @publications = ContentPublication.find_select_options(:all,:conditions => { :publication_type => 'edit', :content_model_id => opts.user_model_id })    
-    
-  
-  end
-
-  class EditProfileOptions < HashModel
-    attributes :content_publication_id => nil, :profile_page_id => nil
-    
-    integer_options :content_publication_id, :profile_page_id
-    page_options :profile_page_id
-  end
-  
-  
-  
-  class FriendOptions < HashModel
+  class FriendsOptions < HashModel
     attributes :profile_page_id => nil, :limit => 0, :grouped => 'no',:order => 'newest'
-    
     validates_numericality_of :limit
-    
     integer_options :limit, :profile_page_id
-    
     validates_presence_of :profile_page_id, :grouped
-    
     has_options :order, [['Newest','newest'],['Oldest','oldest'],['Alphabetical','alpha']]
   end
   
   class UserSearchOptions < HashModel
     attributes :social_unit_type_id => nil, :social_unit_parent_type_id => nil, :profile_page_id  => nil, :social_unit_type_id => nil, :profile_id => nil
-    
     integer_options :social_unit_type_id,:social_unit_parent_type_id,:profile_page_id
-    
     page_options :profile_page_id
   end
   

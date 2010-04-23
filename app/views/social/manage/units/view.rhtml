@@ -34,31 +34,8 @@ var ChapterViewer = {
 <hr/>
 
 
-
-
-<% ajax_tabs [ 'Members','Wall' ], 'Members' do |t| -%>
-
-<% t.tab do -%>
 <div class='admin_content'>
-
-
   <div id='unit_members_table'>
     <%= render :partial => 'unit_members_table' %>
   </div>
 </div>
-<% end -%>
-
-<% t.tab do -%>
-<div class='admin_content'>
-
-  <div id='unit_wall_table'>
-    <%= render :partial => 'unit_wall_table' %>
-  </div>
-
-</div>
-<% end -%>
-
-
-<% end -%>
-
-

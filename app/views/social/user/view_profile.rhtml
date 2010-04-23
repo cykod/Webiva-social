@@ -1,7 +1,0 @@
-<div class='cms_form'>
-<% paragraph_options_form_for :view_profile do |f| -%>
-  <%= f.select :social_unit_type_id, [['--Any Type--',nil]] +  SocialUnitType.select_options(:order => 'name'),:label => 'Primary Group to display' %>
-  <%= f.page_selector :group_page_id  %>
-<% end -%>
-
-</div>

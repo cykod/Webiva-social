@@ -1,6 +1,0 @@
-
-
-class SocialPicture < DomainModel
-
-
-end

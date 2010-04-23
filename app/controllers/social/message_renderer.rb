@@ -2,76 +2,9 @@
 
 class Social::MessageRenderer < Social::SocialRenderer
 
-  features '/social/message_feature'
-
-  paragraph :wall, :ajax => true
   paragraph :notify, :ajax => true
 
-  def wall
-    @options = paragraph_options(:wall)
-    @mod_opts = module_options(:social)
-    
-    
-    if ajax? && params[:target_hash]
-      target_hash = params[:target_hash]
-      target_class,target_id = session['user_wall_target_' + params[:target_hash]]
-      
-      begin
-        @target = target_class.constantize.find(target_id)
-      rescue Exception => e
-        return
-      end
-    end
-      
-   if ajax? && params[:remove_message] && params[:remove_message][paragraph.id.to_s]
-      entry= SocialWallEntry.find_by_id(params[:remove_message][paragraph.id.to_s],:conditions => { :target_id => @target.id, :target_type => @target.class.to_s })
-      if entry && (entry.end_user_id = myself.id || can_edit)
-        entry.destroy
-        redirect_paragraph paragraph_page_url
-        return
-      end
-    else
-      if !@target
-        connection_type,conn_id = page_connection
-        if connection_type == :wall_target
-          @target = conn_id
-        else 
-          @target = nil
-        end
-      end
-      
-      can_edit = @target ? @target.is_admin?(myself) : false
-      
-      if @target
-        target_hash = DomainModel.generate_hash
-        session['user_wall_target_' + target_hash] = [ @target.class.to_s, @target.id  ]
-      end
-      
-      post = SocialWallEntry.new
-      
-      if @target && request.post? && params[:wall]
-        entry = SocialWallEntry.create(:message => params[:wall][:message], :target => @target, :end_user_id => myself.id)
-        if !ajax? && entry
-          redirect_paragraph :page
-          return
-        end 
-      end
-      
-      cur_page = params[:wall_page].to_i
-      cur_page = 1 if cur_page < 1
-      if @target
-        pages,wall_entries = SocialWallEntry.paginate(cur_page,:conditions => ["target_type =? AND target_id=?",@target.class.to_s,@target.id],:order => 'created_at DESC',:per_page => 20)
-        more = (cur_page < pages[:pages])
-      end
-      
-      data = { :target => @target, :paragraph => paragraph, :entries => wall_entries, :post => post, :can_edit => can_edit, :target_hash => target_hash, :ajax => ajax?, :more => more  }
-      
-      render_paragraph :text =>  social_message_wall_feature(data)
-    end
-  end
-  
   def notify
-  
     if ajax? && params[:page].to_s == 'autocomplete'
       display_autocomplete
       return
@@ -84,7 +17,6 @@ class Social::MessageRenderer < Social::SocialRenderer
     when 'invite_members': invite_members
     when 'promote': promote
     when 'demote': demote
-    when 'job_inquiry': job_inquiry
     else
       render_paragraph :text => 'Invalid Notification'
     end
@@ -258,28 +190,5 @@ class Social::MessageRenderer < Social::SocialRenderer
       render_paragraph :text => "#{@member.end_user.name} is already an Administrator"
     end 
   end
-  
-  
-  def job_inquiry
-    @posting = JobsPosting.find_by_id(params[:posting_id])
-    if @posting
-      resume = JobsResume.user_resume(myself)
-      @confirmed = params[:confirm] ? true : false
-      
-      if @confirmed
-        if resume && resume.resume_file && params[:message][:resume] && !params[:message][:resume][0].blank?
-          msg = MessageTemplate.create_message('job_inquiry_resume',myself, { :job => @posting.title, :resume => resume.resume_file.url , :message => simple_format(h(params[:message][:message])) })
-        else
-          msg = MessageTemplate.create_message('job_inquiry',myself, { :job => @posting.title,  :message => simple_format(h(params[:message][:message])) })
-        end
-        msg.send_notification(@posting.end_user)
-      end
-      @view_data = { :posting => @posting,:message => HashModel.new({}), :resume => resume, :group => @group, :renderer => self, :confirmed => @confirmed, :ajax => ajax? }
-      render_paragraph :partial => '/social/message/job_inquiry', :locals => @view_data
-    else
-      render_paragraph :text => "Invalid Job Posting"
-    end
-      
-  end
-
+ 
 end

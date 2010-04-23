@@ -18,6 +18,15 @@ class InitialSocialTable < ActiveRecord::Migration
       t.integer :child_type_id
       t.boolean :has_location, :default => true
       t.string :category_options
+      t.integer :missing_image_id
+      t.boolean :social_unit_types, :auto_friend 
+      t.boolean :child_message, :default => false
+
+      t.boolean :member_create_events, :default => false
+      t.string :sub_groups, :limit => 32
+
+      t.integer :access_token_id
+      
     end
     
     create_table :social_locations, :force => true do |t|
@@ -33,6 +42,7 @@ class InitialSocialTable < ActiveRecord::Migration
     
     create_table :social_units, :force => true do |t|
       t.string :name
+      t.string :url, :limit => 128
       t.integer :parent_id
       t.integer :social_location_id
       t.integer :social_unit_type_id
@@ -42,14 +52,25 @@ class InitialSocialTable < ActiveRecord::Migration
       
       t.string :address
       t.string :city
-      t.string :state
-      t.string :zip
+      t.string :state, :limit => 16
+      t.string :zip, :limit => 32
+      t.string :website
       
+      t.string :lead_source
+
       t.integer :image_file_id
+
+      t.datetime :approved_until
+      t.integer :created_by_id
+
+
+      
 
       t.timestamps
     end   
     
+
+    add_index :social_units, :url
     add_index :social_units, :parent_id, :name => 'parent_index'
     add_index :social_units, [ :social_unit_type_id,:social_location_id,:name ] ,:name => 'type index'
     
@@ -58,8 +79,8 @@ class InitialSocialTable < ActiveRecord::Migration
       t.integer :social_unit_type_id # De-normalize for quicker access
       t.integer :social_unit_parent_id # De-normalize for quicker access
       t.integer :end_user_id
-      t.string :role, :default => 'member'
-      t.string :status
+      t.string :role, :default => 'member', :limit => 16
+      t.string :status, :limit => 16
       t.boolean :approved, :default => false
 
       t.timestamps
@@ -67,17 +88,6 @@ class InitialSocialTable < ActiveRecord::Migration
     
     add_index :social_unit_members, :social_unit_id, :name => 'social_unit_idex'
     add_index :social_unit_members, :social_unit_parent_id, :name => 'social_parent_idex'
-    
-    create_table :social_wall_entries, :force => true do |t|
-      t.string :target_type, :size => 32
-      t.integer :target_id
-      
-      t.text :message
-      t.integer :end_user_id
-      t.timestamps
-    end
-    
-    add_index :social_wall_entries, [ :target_type, :target_id ], :name => 'target_index'
     
     create_table :social_friends, :force => true do |t|
       t.integer :end_user_id
@@ -91,6 +101,33 @@ class InitialSocialTable < ActiveRecord::Migration
     add_index :social_friends, [ :end_user_id] ,:name => 'user_index'
     add_index :social_friends, [ :friend_user_id ], :name => 'friend_index'    
     
+      
+    create_table :social_invites, :force => true do |t|
+      t.integer :social_unit_id
+      t.integer :end_user_id
+      t.string :email
+      t.boolean :admin_invite, :default => false
+      t.timestamps
+    end   
+    
+    add_index :social_invites, :email, :name => 'email_index'
+
+
+    create_table :social_blocks, :force => true do |t|
+      t.integer :end_user_id
+      t.integer :blocked_user_id
+      t.timestamps
+    end   
+    
+    add_index :social_blocks, [:blocked_user_id],:name =>'blocked'
+    add_index :social_blocks, [:end_user_id],:name =>'my_blocked'
+
+    create_table :social_group_requests, :force => true do |t|
+      t.integer :social_unit_id
+      t.integer :end_user_id
+      t.timestamps
+    end   
+    
   end
 
   def self.down
@@ -99,7 +136,10 @@ class InitialSocialTable < ActiveRecord::Migration
     drop_table :social_locations
     drop_table :social_units
     drop_table :social_unit_members
-    drop_table :social_wall_entries
+    drop_table :social_invites
+    drop_table :social_blocks
+    drop_table :social_group_requests
+
   end
 
 end

@@ -5,13 +5,14 @@ class Social::AdminController < ModuleController
   permit 'social_config'
 
   component_info 'Social', :description => 'Social Networking support', 
-                              :access => :private
+                              :access => :public,
+                              :dependencies => [ 'message', 'user_profile'] 
                               
   # Register a handler feature
   register_permission_category :social, "Social" ,"Permissions related to social networking"
   
   register_permissions :social, [ [ :manage_groups, 'Manage Groups', 'Manage Social Networking Groups' ],
-                                  [ :config, 'Configure Social Netwroking', 'Configure Social Networking' ],
+                                  [ :config, 'Configure Social Networking', 'Configure Social Networking' ],
                                   [ :ghost, 'Social Networking Ghost', 'Social Networking Ghost Account' ]
                                   ]
 
@@ -22,12 +23,8 @@ class Social::AdminController < ModuleController
  
   content_model :social
   
-  register_handler :members, :view,  "Social::Manage::UserController"
-  
   register_handler :model, :gallery_image, "Social::GalleryExtension", :actions => [ :after_save, :before_destroy ] 
-
   register_handler :shop, :product_feature, "Social::UnitActivation"
-
   
   register_handler :editor, :auth_user_register_feature, "Social::UserRegisterExtension"
   register_handler :editor, :auth_user_register_feature, "Social::UserRegisterInviteExtension"
@@ -40,7 +37,7 @@ class Social::AdminController < ModuleController
   def self.get_social_info
     opts = module_options
     models = SocialUnitType.find(:all,:order =>'name').map do |ut|
-        {:name => "Manage #{ut.name.pluralize}",:url => { :controller => '/social/manage/units', :path => [ ut.id ] }, :permission => 'social_manage_groups' }
+        {:name => "Manage #{ut.name.pluralize}",:url => { :controller => '/social/manage/units', :path => [ ut.id ] }, :permission => 'social_manage_groups', :icon => 'icons/content/organize_icon.png' }
     end
 
     if opts.show_locations
@@ -52,8 +49,6 @@ class Social::AdminController < ModuleController
   
  public 
  
-  include ActiveTable::Controller
-  
   active_table :social_unit_types_table, SocialUnitType, [ :check,:name,"Parents","Children"]
  
   def display_social_unit_types_table(display=true)
@@ -87,12 +82,10 @@ class Social::AdminController < ModuleController
     @social_unit_type = SocialUnitType.find_by_id(params[:path][0]) || SocialUnitType.new()
     cms_page_path ['Options','Modules','Social Options'], @social_unit_type.id ? "Type Edit" : "Type Create"
 
-    
-    if request.post? && params[:social_unit_type] && @social_unit_type.update_attributes(params[:social_unit_type])
-      redirect_to :action => :options
-      return 
+    if request.post? && params[:social_unit_type] && 
+        @social_unit_type.update_attributes(params[:social_unit_type])
+      return redirect_to :action => :options
     end
-    
   end
   
   def self.module_options(vals=nil)
@@ -100,7 +93,7 @@ class Social::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :location_name => 'Campus', :user_model_id => nil, :notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_wall_message => nil, :automatic_message_id => nil, :show_locations => true
+    attributes :location_name => 'Group',:notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_message_id => nil, :show_locations => true
 
     boolean_options :show_locations
     
@@ -115,5 +108,4 @@ class Social::AdminController < ModuleController
     end
   end
       
-  
 end

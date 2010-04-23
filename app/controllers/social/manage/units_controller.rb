@@ -85,28 +85,9 @@ class Social::Manage::UnitsController < ModuleController
     render :partial => 'unit_members_table' if display
   end
   
-  active_table :unit_wall_table, SocialWallEntry, [ :check, :end_user, :created_at,:message ]
-  
-  def display_unit_wall_table(display=true)
-    @social_unit_type = SocialUnitType.find(params[:path][0]) unless @social_unit_type
-    @unit = SocialUnit.find(params[:path][1]) unless @unit
-    
-    active_table_action('wall_entry') do |act,wids|
-      case act
-      when 'delete':  SocialWallEntry.destroy(wids)
-      end
-      DataCache.expire_content("Social","Units")
-    end
-
-    @wall_tbl =  unit_wall_table_generate params,:order => 'updated_at DESC',
-          :joins => [ :end_user ],:conditions => ['target_type = ? AND target_id=?',@unit.class.to_s,@unit.id ]
-  
-    render :partial => 'unit_wall_table' if display
-  end
   
   def view
     display_unit_members_table(false)
-    display_unit_wall_table(false)
   
     cms_page_path [ "Content", 
                   [ "Manage %s",url_for(:action => 'index', :path => [ @social_unit_type.id ]),@social_unit_type.name.pluralize]],

@@ -1,6 +1,0 @@
-
-
-class SocialUnitEvent < DomainModel
-
-
-end

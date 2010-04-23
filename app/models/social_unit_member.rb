@@ -20,6 +20,10 @@ class SocialUnitMember < DomainModel
     members = self.find(:all,:conditions => ['end_user_id = ?',user],:include => :social_unit)
     members.map { |member| member.social_unit }
   end
+
+  def self.member_groups(user_id)
+    members = self.find(:all,:conditions => ['end_user_id = ?',user_id],:include => :social_unit)
+  end
   
   def create_friends!
     self.social_unit.social_unit_members.find(:all).each do |member|

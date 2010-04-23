@@ -4,7 +4,6 @@ class Social::UserRenderer < Social::SocialRenderer
   features '/social/user_feature'
   features '/social/message_feature'
 
-  paragraph :edit_profile
   paragraph :view_profile
   
   paragraph :wall
@@ -12,108 +11,77 @@ class Social::UserRenderer < Social::SocialRenderer
   paragraph :user_search
   paragraph :friend_groups
 
-  def edit_profile
-    @options = paragraph_options(:edit_profile)
-    @mod_opts = module_options(:social)
-    @user = myself
-    @suser = social_user(@user)
-    
-    content_model = ContentModel.find_by_id(@mod_opts.user_model_id)
-    cls = content_model.content_model
-    entry = cls.find_by_user_id(@user.id) || cls.new(:user_id => @user.id)
-    publication = content_model.content_publications.find_by_id(@options.content_publication_id)
-    
-    if params[:user]
-    
-      handle_image_upload(params[:user],:domain_file_id, :location => Configuration.options[:user_image_folder])
-
-      @user.attributes = params[:user]
-      entry.attributes = params[:entry]
-      
-      if @user.valid? && entry.valid?
-        if params[:suser] && params[:suser][:role] && Social::AdminController.module_options.roles.include?(params[:suser][:role])
-          @suser.update_attribute(:role,params[:suser][:role])
-          @suser.update_member_roles(params[:suser][:role])
-        end
-        
-        @user.save
-        entry.save
-        if @options.profile_page_id.to_i > 0
-          redirect_paragraph @options.profile_page_url
-        else
-          render_paragraph :text => 'Your profile has been updated'
-        end
-        return        
-      end          
-
-    end
-    
-    frm = render_to_string :partial => '/social/user/edit_profile', :locals => { :entry => entry, :user => @user, :suser => @suser, :options => @options, :publication => publication }
-    
-    data = { :user => @user, :frm => frm, :publication => publication, :entry => entry, :suser => @suser }
-  
-    render_paragraph :text => social_user_edit_profile_feature(data)
-  end 
-  
-  
   def view_profile
     @options = paragraph_options(:view_profile)
     @mod_opts = module_options(:social)
     
-    content_model = ContentModel.find_by_id(@mod_opts.user_model_id)
-    cls = content_model.content_model 
 
-    connection_type,conn_id = page_connection
-    
-    if(!conn_id.blank?)
-      @user = EndUser.find_by_id(conn_id)
-      
-      if @user && SocialBlock.blocked?(myself,@user)
-        @blocked = true
-        @user = nil 
-      end
-    else
-      @user = myself
-    end
+    @user, @user_profile = fetch_profile
     
     outstanding_invite = false
     if @user
-      is_friend = SocialFriend.is_friend?(myself,@user) 
+      @is_friend = SocialFriend.is_friend?(myself,@user) 
       
-      if !is_friend
-        outstanding_invite = SocialFriend.has_invite?(myself,@user)
+      if !@is_friend
+        @outstanding_invite = SocialFriend.has_invite?(myself,@user)
       end
-      is_myself = myself.id == @user.id 
+      @is_myself = myself.id == @user.id 
     end
 
     @suser = social_user(@user) if @user
     
-    set_page_connection(:user_private,@user) if is_friend || is_myself
+    @private_view = true  if @is_friend || @is_myself
+
+    if @user_profile
+      @content_model = @user_profile.content_model
+      set_title(@user.full_name)
+      set_title(@user.full_name,"profile")
+    end
+
+    set_page_connection(:user_private,@private_view ? @user : nil) 
     set_page_connection(:user,@user)
     set_page_connection(:social_user,@suser)
+    set_page_connection(:content_list,@suser ? @suser.nested_full_content_list : nil)
+    set_page_connection(:content_list_private,@private_view ? @suser.nested_full_content_list : nil)
+
+    set_page_connection(:profile_content, @user_profile ? ['UserProfileEntry',@user_profile.id] : nil)
+    set_content_node(@user_profile)
     
-    
-    set_page_connection(:containers,@suser)
-    
-    
-    @entry = cls.find_by_user_id(@user.id) || cls.new(:user_id => @user.id) if @user
-    
-    if @user
-      @all_members = SocialUnitMember.find(:all,:conditions => { :end_user_id => @user.id}).group_by(&:social_unit_type_id)
-      @social_unit_members = @all_members[@options.social_unit_type_id] || []
+    if @user && @options.include_groups
+      @groups = SocialUnitMember.member_groups(@user.id).group_by(&:social_unit_type_id)
+      @group_types = @groups.group_by(&:social_unit_type_id)
+
+      @primary_group = @groups[@options.social_unit_type_id][0] if @groups[@options.social_unit_type_id]
     else
-      @all_members = {}
-      @social_unit_members = []
+      @groups = []
+      @group_types = {}
+      @primary_group = nil
     end
+
+    require_social_js
     
+    render_paragraph :text => social_view_profile_feature
+  end
+
+
+  def fetch_profile
+    connection_type,conn_id = page_connection
     
-    data = { :user => @user, :entry => @entry, :content_model => content_model, :suser => @suser,
-             :social_unit_members =>  @social_unit_members, :myself => is_myself,
-             :groups => @all_members, :group_page_url => @options.group_page_url,
-             :private => is_friend || is_myself, :friend => is_friend, :blocked => @blocked,
-             :outstanding_invite => outstanding_invite }
-    
-    render_paragraph :text => social_view_profile_feature(data)
+    if(!conn_id.blank?)
+      @user_profile = UserProfileEntry.find_published_profile(conn_id,@options.profile_type_id)
+      @user = @user_profile.end_user if @user_profile
+      
+      if @user && SocialBlock.blocked?(myself,@user)
+        @blocked = true
+        @user = nil 
+        @user_profile = nil
+      end
+    elsif myself.id
+      @user = myself
+      @user_profile = UserProfileEntry.fetch_entry(@user.id,@options.profile_type_id)
+    end
+
+    [ @user, @user_profile ]
   end
   
   def friends
@@ -259,18 +227,20 @@ class Social::UserRenderer < Social::SocialRenderer
       results.map! { |user| end_user_ids << user.id; { :user => user, :groups => groups[user.id]||[] } }
     end
     data = {:search => params[:search], :results => results, :paging => paging, :profile_page => @options.profile_page_url }
+    require_social_js
 
-  require_js('prototype.js')
-      require_js('builder')
-      require_js('redbox')
-      require_css('redbox')        
-      require_js('effects.js')
-      require_js('controls.js')
-      require_js('user_application.js')
-      require_js('end_user_table.js')    
-        
-  
     render_paragraph :text => social_user_search_feature(data)
+  end
+
+  def require_social_js
+    require_js('prototype.js')
+    require_js('builder')
+    require_js('redbox')
+    require_css('redbox')        
+    require_js('effects.js')
+    require_js('controls.js')
+    require_js('user_application.js')
+    require_js('end_user_table.js')    
   end
 
 end

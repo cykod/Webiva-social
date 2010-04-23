@@ -13,8 +13,6 @@ class Social::Manage::UserController < ModuleController
     }
    end  
    
-   helper :content
-   
    def view
      @tab = params[:tab]
     @user = EndUser.find(params[:path][0])

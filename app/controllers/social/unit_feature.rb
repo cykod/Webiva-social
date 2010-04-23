@@ -2,8 +2,6 @@
 
 class Social::UnitFeature < ParagraphFeature
 
-  include ContentHelper
-
   feature :social_unit_location, :default_feature => <<-FEATURE
     <cms:location>
       <cms:groups>
@@ -157,15 +155,20 @@ class Social::UnitFeature < ParagraphFeature
   end
   
   
+  module SocialUnitTags
   
-  def define_group_tags(c,data)
-    c.value_tag('group_id') { |tg| tg.locals.group.id if tg.locals.group }
-    c.image_tag('group:img') { |tg| tg.locals.group.image }
-    c.expansion_tag('group:approved') { |tg| tg.locals.group.approved? }
-    c.value_tag('group:name') { |tg| tg.locals.group.name }
-    c.value_tag('group:parent') { |tg| tg.locals.group.parent ? tg.locals.group.parent.name : nil }
-    c.value_tag('group:location') { |tg| tg.locals.group.social_location ? tg.locals.group.social_location.name : nil }
+    def define_group_tags(c,base,opts = {})
+      local = opts[:local] || "group"
+      c.value_tag("#{base}:group_id") { |tg| tg.locals.send(local).id if tg.locals.send(local) }
+      c.image_tag("#{base}:img") { |tg| tg.locals.send(local).image }
+      c.expansion_tag("#{base}:approved") { |tg| tg.locals.send(local).approved? }
+      c.value_tag("#{base}:name") { |tg| tg.locals.send(local).name }
+      c.value_tag("#{base}:parent") { |tg| tg.locals.send(local).parent ? tg.locals.send(local).parent.name : nil }
+      c.value_tag("#{base}:location") { |tg| tg.locals.send(local).social_location ? tg.locals.send(local).social_location.name : nil }
+    end
   end
+
+  include SocialUnitTags
     
   feature :social_unit_members, :default_feature => <<-FEATURE
     <cms:members>
@@ -243,7 +246,7 @@ class Social::UnitFeature < ParagraphFeature
       c.value_tag('group:city') { |t| t.locals.group[1] ? t.locals.group[1].city : nil   }
       c.value_tag('group:state') { |t| t.locals.group[1] ? t.locals.group[1].state : nil   }
       c.value_tag('group:count') { |t| t.locals.group[2]  }
-      c.link_tag('group:group') { |t| "#{data[:group_page_url]}/#{t.locals.group[0].id}" }
+      c.link_tag('group:canonical') { |t| "#{data[:group_page_url]}/#{t.locals.group[0].id}" }
     end
   
   end  

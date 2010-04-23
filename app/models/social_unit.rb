@@ -53,14 +53,6 @@ class SocialUnit < DomainModel
   end
   
   
-  def after_create
-    if self.social_unit_type && !self.social_unit_type.wall_post.blank?
-       SocialWallEntry.create(:target => self,
-                      :end_user_id => self.social_unit_type.wall_post_user_id, 
-                      :message => self.social_unit_type.wall_post)
-    end
-  end
-  
   def sub_groups
     if self.social_unit_type.sub_groups.to_s.strip.blank?
       [ nil ]

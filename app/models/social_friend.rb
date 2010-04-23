@@ -70,6 +70,10 @@ class SocialFriend < DomainModel
     
     friends
   end
+
+  def self.friends_cache_content(user_id)
+    friends = self.friends_cache(user_id).map { |fid| [ "EndUser", fid ] }
+  end
   
   def self.clear_friends_cache(user_id)
     DataCache.expire_content('SocialFriends',user_id.to_s)
