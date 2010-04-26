@@ -7,6 +7,8 @@ class Social::UserController < ParagraphController
   editor_for :view_profile, :name => 'View User Profile', :inputs => [ [ :profile_entry_url, 'Profile User URL', :path ] ], :feature =>  :social_view_profile, 
     :outputs => [ [:user,'Public Profile User',:target ], 
                   [:user_private,'Private Profile User',:target ], 
+                  [:user_profile_entry, 'Public Profile Entry', :target],
+                  [:user_profile_entry_private, 'Private Profile Entry', :target],
                   [:social_user,"Social User Private",:target], 
                   [:content_list,"Friend and Group List",:content_list ],
                   [:content_list_private,"Friend and Group list Private",:content_list] ]

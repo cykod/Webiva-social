@@ -40,6 +40,8 @@ class Social::UserRenderer < Social::SocialRenderer
 
     set_page_connection(:user_private,@private_view ? @user : nil) 
     set_page_connection(:user,@user)
+    set_page_connection(:user_profile_entry,@user_profile)
+    set_page_connection(:user_profile_entry_private,@private_view ? @user_profile: nil)
     set_page_connection(:social_user,@suser)
     set_page_connection(:content_list,@suser ? @suser.nested_full_content_list : nil)
     set_page_connection(:content_list_private,@private_view ? @suser.nested_full_content_list : nil)
