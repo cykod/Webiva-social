@@ -1,8 +1,0 @@
-<div class='cms_form'>
-<%  paragraph_options_form_for :members do |f| -%>
-  <%= f.select :profile_page_id, SiteNode.page_options -%>
-  <%= f.text_field :status, :description => 'only show members with this status' %>
-  <%= f.text_field :per_page %>
-  <%= f.check_box :approved,:description => 'Only show approved members' %>
-<% end -%>
-</div>
