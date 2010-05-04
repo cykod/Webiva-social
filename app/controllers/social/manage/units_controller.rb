@@ -109,6 +109,7 @@ class Social::Manage::UnitsController < ModuleController
   
     @unit = SocialUnit.find_by_id(params[:path][1]) || SocialUnit.new(:social_unit_type_id => @social_unit_type.id)
     
+    @content_model_entry = @unit.model_entry
     cms_page_path [ "Content", 
                   [ "Manage %s",url_for(:action => 'index', :path => [ @social_unit_type.id ]),@social_unit_type.name.pluralize]],
                   @unit.id  ? 'Edit ' +  @social_unit_type.name : 'Create ' +  @social_unit_type.name
@@ -125,6 +126,7 @@ class Social::Manage::UnitsController < ModuleController
     if @social_unit_type.has_location?
       @locations = [["--No #{@soc_opts.location_name}--",nil]] +SocialLocation.find_select_options(:all,:order => 'name')
     end
+
   end
 
 end

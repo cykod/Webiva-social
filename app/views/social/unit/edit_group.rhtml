@@ -3,6 +3,8 @@
   <%= f.select :social_unit_type_id, [['--Any Type--',nil]] +  SocialUnitType.select_options(:order => 'name'),:label => 'Type to display' %>
   <%= f.page_selector :invalid_page_id, :label => 'Invalid Redirect',:description => 'Page to redirect to if invalid' %>
   <%= f.page_selector :success_page_id, :label => 'Successful Edit Page' %>
-  <%= f.select :content_publication_id,  ContentPublication.find_select_options(:all,:conditions => { :publication_type => 'edit', :content_model_id => @social_unit_type.content_model_id }) if @social_unit_type && @social_unit_type.content_model %>
+  <%= f.ordered_array :display_fields, @options.available_field_options %>
+
+  <%= f.select :content_publication_id,  @options.available_publications  if @social_unit_type && @social_unit_type.content_model %>
 <% end -%>
 </div>

@@ -16,70 +16,65 @@ class Social::UnitRenderer < Social::SocialRenderer
     @options = paragraph_options(:location)
     
     if ajax?
+      return render_locations_select
+    end
+    @suser = social_user(myself)
+    if params[:select]
+      @loc = SocialLocation.find_by_id(params[:select][:location])
+      if @loc
+        redirect_paragraph site_node.node_path + "/" + @loc.id.to_s
+        return
+      end
+    end
+
+    @social_unit_type = SocialUnitType.find_by_id(@options.social_unit_type_id) if @options.social_unit_type_id.to_i> 0
+    @groups, @location = find_location_and_group
+
+    require_ajax_js 
+
+    @selector =  { :state => @state, :location => (@loc ? @loc.id : nil)  }
+    render_paragraph :text => social_unit_location_feature
+  end
+
+  def render_locations_select
       @locs = [['--Select Location--',nil]] + SocialLocation.select_options(:conditions => ['state=?',params[:select][:state]],:order =>'name')
         
       render_paragraph :text => "<select id='select_location' name='select[location]' onchange=\"if(this.value!='') document.location = '#{site_node.node_path}/' + this.value;\">" + options_for_select(@locs) + "</select>"
+  end
+
+  def find_location_and_group
+    conditions = { }
+    conditions[:social_unit_type_id] = @options.social_unit_type_id if @options.social_unit_type_id.to_i > 0
+
+    if @options.display == 'none'
+      location = nil
     else
-      @suser = social_user(myself)
-      if params[:select]
-        @loc = SocialLocation.find_by_id(params[:select][:location])
-        if @loc
-          redirect_paragraph site_node.node_path + "/" + @loc.id.to_s
-          return
-        end
-      end
-      
       conn_type,conn_id = page_connection
-      @loc = SocialLocation.find_by_id(conn_id) if conn_id && conn_type == :location_id
-        
-      unless @loc      
-        @loc = @suser.social_location
-      end
-      
-      if @loc
-        if @options.social_unit_type_id.to_i > 0
-          @groups = @loc.social_units.find(:all,:order => 'name',:conditions => { :social_unit_type_id => @options.social_unit_type_id.to_i } )
-        else
-          @groups = @loc.social_units.find(:all,:order => 'name')
-        end
-      end
-      
-      state = @loc ? @loc.state : nil
-      
-      if state
-        location_options = [['--Select Location--',nil]] + SocialLocation.select_options(:conditions => ['state=?',state],:order =>'name')
-      else
-        location_options = []
-      end
-    
-      require_js('prototype.js')
-      require_js('builder')
-      require_js('redbox')
-      require_css('redbox')        
-      require_js('effects.js')
-      require_js('controls.js')
-      require_js('user_application.js')
-      require_js('end_user_table.js')    
-      
-      data = { :location => @loc, :groups => @groups, :group_url => SiteNode.node_path(@options.group_url_id), :location_options => location_options, :selector => { :state => state, :location => (@loc ? @loc.id : nil)  }, :url => site_node.node_path }
-      render_paragraph :text => social_unit_location_feature(data)
+      location = SocialLocation.find_by_url(conn_id) if conn_id && conn_type == :location_id
+   
+      location = @suser.social_location unless location
+
+      conditions[:social_location_id] = location.id if location
+
+      @state = location ? location.state : nil
+
+      @location_options = []
+      @location_options = [['--Select Location--',nil]] + SocialLocation.select_options(:conditions => ['state=?',state],:order =>'name') if @state
     end
+    groups = SocialUnit.find(:all,:conditions => conditions,:order => 'name')
+
+    return groups,location
   end
 
   def group
 
+    require_ajax_js 
     
     @options = paragraph_options(:group)
     @suser = social_user(myself)
     
     @group = get_group
-    
-    set_page_connection(:group,@group)
-    
-    if @group && !@group.approved? && params[:request]
-      SocialGroupRequest.register_request(myself,@group)
-      @registered_request = true
-    end
+    @social_unit_type = @group.social_unit_type if @group
 
     is_member = @group && @group.is_member?(myself) ? true : false
     if @group && !is_member && @options.child_member
@@ -105,16 +100,17 @@ class Social::UnitRenderer < Social::SocialRenderer
     set_title(@group ? @group.name : 'None')
     set_title(@group ? @group.name : 'None','group')
 
-    content_model = @group.social_unit_type.content_model if @group && @group.social_unit_type.content_model
-    if content_model
-     cls = content_model.content_model
-     entry = cls.find_by_social_unit_id(@group.id) || cls.new(:social_unit_id => @group.id)
-    end
-    
-    data = {:group => @group, :is_member => is_member, :is_admin => is_admin, :edit_page_url => edit_page_url, :content_model => content_model, :entry => entry ,:registered_request => @registered_request, :suser => @suser }
-    
+    display_path = is_admin ? 'admin' : (is_member ? 'member' : 'anonymous' )
 
-    render_paragraph :text => social_unit_group_feature(data)
+    result = renderer_cache(@group,display_path,:skip => @registered_request) do |cache|
+      data = {:group => @group, :is_member => is_member, :is_admin => is_admin, :edit_page_url => edit_page_url,
+            :registered_request => @registered_request, :suser => @suser, :options => @options,
+      :social_unit_type => @options.social_unit_type}
+
+      cache[:output] =  social_unit_group_feature(data)
+    end
+
+    render_paragraph :text => result.output
   end
   
   
@@ -124,45 +120,28 @@ class Social::UnitRenderer < Social::SocialRenderer
 
     @group = get_group
     
-    is_admin = @group.is_admin?(myself.id) if @group
-    
-    if !is_admin && !editor?  &&  @options.redirect_page_id.to_i > 0
-        redirect_paragraph :site_node => @options.redirect_page_id
-    elsif is_admin
-        @social_unit_type = SocialUnitType.find_by_id(@options.social_unit_type_id) unless @social_unit_type
-        
-        if @social_unit_type && @social_unit_type.content_model
-          mdl = @social_unit_type.content_model
-          publication = mdl.content_publications.find_by_id(@options.content_publication_id)
-          cls = mdl.content_model
-          entry = cls.find_by_social_unit_id(@group.id) || cls.new(:social_unit_id => @group.id)
-        end
-        
-       if params[:group] && request.post?
-          handle_image_upload(params[:group],:image_file_id, :location => Configuration.options[:user_image_folder])
-          @group.attributes = params[:group]
-          entry.attributes = params[:entry] if entry
-          if @group.valid? && (!entry || entry.valid?)
-            @group.save
-            entry.save if entry
-            
-            if @options.success_page_id > 0
-              redirect_paragraph @options.success_page_url + "/" + @group.id.to_s
-            else
-              render_paragraph :text => 'Group has been updated'
-            end
-            return
+    @is_admin = @group.is_admin?(myself.id) || editor? if @group
+
+    if !@group && !editor?
+      raise  SiteNodeEngine::MissingPageException.new( site_node, language )
+    elsif @is_admin
+      if params[:group] && request.post?
+        handle_image_upload(params[:group],:image_file_id, :location => Configuration.options.user_image_folder)
+        @group.attributes = params[:group].slice(*@options.valid_field_parameters)
+        if @group.valid?
+          @group.save
+          @saved = true
+          if @options.success_page_id > 0
+            return redirect_paragraph @options.success_page_url + "/" + @group.url
           end
         end
-        
-        frm = render_to_string :partial => '/social/unit/edit_group', :locals => { :entry => entry, :group => @group, :options => @options, :publication => publication }
-        
-        data = { :group => @group, :frm => frm }
-    
-        render_paragraph :text => social_unit_edit_group_feature(data)
-    else
-      render_paragraph :text => 'Invalid Group'
+      end
+    elsif !editor?  &&  @options.invalid_page_url
+      return redirect_paragraph @options.invalid_page_url + "/" + @group.url
     end
+    @publiction = ContentPublication.find_by_id(@options.content_publication_id)
+
+    render_paragraph :feature => :social_unit_edit_group
   end
   
  def create_group
@@ -199,6 +178,7 @@ class Social::UnitRenderer < Social::SocialRenderer
   def members
 
     conn_type,conn_id = page_connection
+    @options = paragraph_options(:members)
 
     @suser = social_user(myself)
 
@@ -216,16 +196,18 @@ class Social::UnitRenderer < Social::SocialRenderer
     
     page = params[:page]
     options = paragraph_options(:members)
-    @conds = ''
-    @cond_opts = []
+    conditions = { }
     if !options.status.blank?
-      @conds += " AND status=?"
-      @cond_opts << options.status
+      conditions['status'] = options.status 
     end
     
+
     if @group
-      @pages,@members = SocialUnitMember.paginate(page,:conditions => ['social_unit_id = ?' + @conds, @group.id ] + @cond_opts ,:per_page => options.per_page,:include => :end_user,:order =>' social_unit_members.created_at DESC')
-      
+      conditions['social_unit_id'] = @group.id
+      @pages,@members = SocialUnitMember.paginate(page,:conditions => conditions,:per_page => options.per_page,:order =>' social_unit_members.created_at DESC')
+      @member_ids = @members.map(&:end_user_id)
+      @members= UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id)
+
       is_admin = @group.is_admin?(myself)
     end
     
@@ -287,6 +269,8 @@ class Social::UnitRenderer < Social::SocialRenderer
     if @options.social_unit_type_id > 0
       if editor?
           @group = SocialUnit.find(:first,:conditions => { :social_unit_type_id => @options.social_unit_type_id })
+      elsif conn_type == :group
+        @group = conn_id
       elsif conn_type == :group_id || conn_id.blank?
         if conn_id.blank?
           @group = @suser.social_units(@options.social_unit_type_id)[0]
@@ -297,7 +281,8 @@ class Social::UnitRenderer < Social::SocialRenderer
             @group = @child_group.parent if @child_group
           end
         else
-          @group = SocialUnit.find_by_id_and_social_unit_type_id(conn_id,@options.social_unit_type_id)
+          @group = SocialUnit.find_by_url_and_social_unit_type_id(conn_id,@options.social_unit_type_id)
+          raise SiteNodeEngine::MissingPageException.new( site_node, language ) unless @group
         end
       end
     else

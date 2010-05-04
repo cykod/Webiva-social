@@ -1,7 +1,7 @@
 <div class='cms_form'>
 <%  paragraph_options_form_for :location do |f| -%>
   <%= f.radio_buttons :display, @options.class.display_select_options %>
-  <%= f.select :group_url_id, SiteNode.page_options %>
+  <%= f.select :group_page_id, SiteNode.page_options %>
   <%= f.select :social_unit_type_id, [['--Any Type--',nil]] +  SocialUnitType.select_options(:order => 'name'),:label => 'Type to display' %>
 <% end -%>
 </div>

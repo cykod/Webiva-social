@@ -18,7 +18,7 @@ class Social::UserRenderer < Social::SocialRenderer
 
     @user, @user_profile = fetch_profile
     
-    outstanding_invite = false
+    @outstanding_invite = false
     if @user
       @is_friend = SocialFriend.is_friend?(myself,@user) 
       
@@ -50,10 +50,9 @@ class Social::UserRenderer < Social::SocialRenderer
     set_content_node(@user_profile)
     
     if @user && @options.include_groups
-      @groups = SocialUnitMember.member_groups(@user.id).group_by(&:social_unit_type_id)
+      @groups = SocialUnitMember.member_groups(@user.id)
       @group_types = @groups.group_by(&:social_unit_type_id)
-
-      @primary_group = @groups[@options.social_unit_type_id][0] if @groups[@options.social_unit_type_id]
+      @primary_group = @group_types[@options.social_unit_type_id][0] if @group_types[@options.social_unit_type_id]
     else
       @groups = []
       @group_types = {}
@@ -88,104 +87,44 @@ class Social::UserRenderer < Social::SocialRenderer
   
   def friends
     @options = paragraph_options(:friends)
-    
-    if !ajax?
-      conn_type,conn_id = page_connection
-      
-      if conn_type == :user_id
-        @user = EndUser.find_by_id(conn_id)
-      elsif conn_type == :user
-        @user = conn_id      
-      else
-        @user = myself
-      end
-      
-      if request.post? && params[:remove_friend] && @user == myself
-        if SocialFriend.remove_friend(myself,EndUser.find_by_id(params[:remove_friend]))
-          redirect_paragraph paragraph_page_url
-          return
-        end
-      end
-      
-      if !@user 
-        render_paragraph :text => ''
+    @user = get_user_from_page_connection
+
+    if request.post? && params[:remove_friend] && @user == myself
+      if SocialFriend.remove_friend(myself,EndUser.find_by_id(params[:remove_friend]))
+        redirect_paragraph paragraph_page_url
         return
       end
-      
-      if @options.grouped == 'yes'
-        @suser = social_user(@user)
-        groups = @suser.social_units
+    end
 
-        order = { 'newest' => 'created_at DESC','oldest' => 'created_at','alpha' => 'end_users.last_name,end_users.first_name' }[@options.order]
-        limit =@options.limit.to_i > 0 ? @options.limit.to_i : nil
-        
-        friends = groups.collect do |group|
-          [ group, group.user_friends(@user,:order => order,:limit => limit) ]
-        end
-        
-        limit =@options.limit.to_i > 0 ? @options.limit.to_i : nil
-        
-        friends << [ nil, SocialFriend.find(:all,:conditions => ['end_user_id=? AND social_unit_id IS NULL',@user.id],:joins => :end_user,:order => order, :limit => limit).map { |sf| sf.friend_user }.compact ]
-      else
-        limit =@options.limit.to_i > 0 ? @options.limit.to_i : nil
-        
-        if params[:group_id]
-          group = SocialUnit.find_by_id(params[:group_id])
-          friends = [[ group, SocialUnitMember.find(:all,:conditions => { :end_user_id => SocialFriend.friends_cache(@user), :social_unit_parent_id => params[:group_id] }, :include => :end_user).map { |su| su.end_user }.compact ] ]
-        else
-          friends = [ [ nil, SocialFriend.find(:all,:conditions => ['end_user_id=?',@user.id],:joins => :end_user,:order => order, :limit => limit,:order => order).map { |sf| sf.friend_user }.compact ] ]
-        
-        end
-      end
-      
-      data = { :friends => friends, :profile_url => SiteNode.node_path(@options.profile_page_id), :user => @user, :group => group }
-      
-      render_paragraph :text => social_friends_feature(data)
-    end
-  end
-  
-  def friend_groups
-  
-    @options = paragraph_options(:friend_groups)
-    
-    conn_type,conn_id = page_connection
-    
-    if conn_type == :user_id
-      @user = EndUser.find_by_id(conn_id)
-    elsif conn_type == :user
-      @user = conn_id      
-    end
-    
-    if !@user 
-      @user = myself
-    end
-    
-    
+    return render_paragraph :text => '' if !@user
     @suser = social_user(@user)
-    
-    friends = SocialFriend.friends_cache(@user)
-    groups  = SocialUnitMember.count(:all,:conditions => { :end_user_id => friends, :social_unit_type_id => @options.social_unit_type_id }, :group => @options.parent ? :social_unit_parent_id : :social_unit_id)
-    
-    
-    units = SocialUnit.find(:all,:conditions => { :id => groups.map { |elm| elm[0] } } ).index_by(&:id)
-    
-    groups_data = groups.collect do |group|
-      if units[group[0].to_i]
-        [ units[group[0].to_i], group[1] ]
-      else
-        nil
-      end
-    end.compact
+    @is_myself = @user == myself 
 
-    groups_data.sort! { |a,b| b[1] <=> a[1] }
-    if @options.limit.to_i > 0
-      groups_data = groups_data.slice(0..@options.limit.to_i)
+    result = renderer_cache(@suser,@is_myself ? 'myself' : 'other') do |cache|
+      limit =@options.limit.to_i > 0 ? @options.limit.to_i : nil
+
+      friend_users = SocialFriend.friends_cache(@user)
+      friend_users = friend_users[0..limit-1] if limit
+      @friends = UserProfileEntry.fetch_entries(friend_users)
+
+      @profile_url = @options.profile_page_url
+      cache[:output] = social_friends_feature
     end
 
-    
-    data = { :user => @user, :groups => groups_data, :friends_page_url => @options.friends_page_url }
-        
-    render_paragraph :text => social_user_friend_groups_feature(data)
+    render_paragraph :text => result.output
+  end
+
+
+  def get_user_from_page_connection
+    conn_type,conn_id = page_connection
+    if conn_type == :user_url
+      profile = UserProfileEntry.fetch_published_profile(conn_id,@options.profile_type_id)
+      user = profile.end_user if profile
+    elsif conn_type == :user
+      conn_id      
+    else
+      myself
+    end
   end
   
   def user_search

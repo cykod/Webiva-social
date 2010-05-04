@@ -13,7 +13,7 @@ class Social::UserController < ParagraphController
                   [:content_list,"Friend and Group List",:content_list ],
                   [:content_list_private,"Friend and Group list Private",:content_list] ]
   
-  editor_for :friends, :name => 'User Friends', :inputs => [[ :user_id, 'User Id', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_friends ]
+  editor_for :friends, :name => 'User Friends', :inputs => [[ :user_url, 'User Profile URL', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_friends ]
   
   editor_for :friend_groups, :name => 'Friend Groups', :inputs => [[ :user_id, 'User Id', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_user_friend_groups ]
   
@@ -37,11 +37,21 @@ class Social::UserController < ParagraphController
   end
 
   class FriendsOptions < HashModel
-    attributes :profile_page_id => nil, :limit => 0, :grouped => 'no',:order => 'newest'
+    attributes :profile_page_id => nil, :profile_type_id => nil, :limit => 0, :order => 'newest'
     validates_numericality_of :limit
     integer_options :limit, :profile_page_id
-    validates_presence_of :profile_page_id, :grouped
+    validates_presence_of :profile_page_id, :profile_type_id
+    boolean_options :grouped
+    page_options :profile_page_id
     has_options :order, [['Newest','newest'],['Oldest','oldest'],['Alphabetical','alpha']]
+
+   options_form(
+      fld(:profile_type_id,:select, :options => Proc.new {  UserProfileType.select_options_with_nil }, :required => true),
+      fld(:profile_page_id,:page_selector,:required => true),
+      fld(:limit,:text_field,:label => 'Limit', :description => '0 for all (per group if grouped)'),
+      fld(:order,:select,:options => :order_select_options)
+   )
+    
   end
   
   class UserSearchOptions < HashModel
@@ -53,8 +63,12 @@ class Social::UserController < ParagraphController
   class FriendGroupOptions < HashModel
     attributes :social_unit_type_id => nil, :friends_page_id => nil, :parent => true, :limit => 0
     
+ 
     integer_options :limit
     boolean_options :parent
     page_options :friends_page_id
+
+    def profile_type_options; UserProfileType.select_options_with_nil; end
+
   end
 end

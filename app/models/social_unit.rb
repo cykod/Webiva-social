@@ -22,11 +22,64 @@ class SocialUnit < DomainModel
   
   belongs_to :social_unit_type
 
+  before_save :add_url
  
 
-  validates_presence_of :name
-#  validates_uniqueness_of :name, :scope => [ :social_location_id, :social_unit_type_id ], :message => 'has already been taken'
+  cached_content :identifier => :url
+  content_node :container_type => 'SocialUnitType', :container_field => 'social_unit_type_id', :push_value => true
 
+  validate :entry_validation
+  after_save :entry_save
+  validates_presence_of :name
+  validates_uniqueness_of :name, :scope => [ :social_location_id, :social_unit_type_id ], :message => 'has already been taken'
+
+
+  protected
+
+  def entry_validation
+   if @set_entry
+     self.errors.add_by_base('Invalid details') if !self.model_entry.valid?
+   end
+  end
+
+  def entry_save
+    self.model_entry.save if @set_entry
+  end
+
+  public
+
+  def entry=(val)
+    @set_entry = true
+    self.model_entry.attributes = val if self.model_entry
+  end
+
+  def content_model
+    self.social_unit_type.content_model
+  end
+  
+  def relationship_field_id
+    self.social_unit_type.content_model_field_id
+  end
+  
+  def model_entry
+    return @content_model_entry if @content_model_entry
+
+    if self.social_unit_type.content_model
+      cls = self.social_unit_type.content_model.model_class
+      model_attributes = { self.social_unit_type.content_model_field_name => self.id }
+
+      @content_model_entry = cls.find(:first,:conditions => model_attributes)
+      unless @content_model_entry
+        @content_model_entry = cls.new(model_attributes)
+      end
+
+      @content_model_entry
+    end
+  end
+
+  def add_url
+    self.url = self.create_url if self.url.blank?
+  end
 
   def users(sub_group=nil)
    if !sub_group
@@ -123,7 +176,7 @@ class SocialUnit < DomainModel
     else
       is_admin?(usr)
     end
-      
+     
   end
   
   def gallery_can_upload(usr)
@@ -165,6 +218,19 @@ class SocialUnit < DomainModel
     end
   end
   
+  protected
+
+  def create_url
+    url_try = self.name
+    url_try = url_try.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+    url_base = url_try
+    idx = 0
+    while SocialUnit.find_by_url(url_try,:conditions => [ "id!=?",self.id ])
+      idx += 1
+      url_try = url_base + '-' + idx.to_s
+    end
+    url_try
+  end
 end
 
 

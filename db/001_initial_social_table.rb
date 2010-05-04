@@ -14,6 +14,8 @@ class InitialSocialTable < ActiveRecord::Migration
       t.boolean :has_parents,:default => false
       t.boolean :has_children, :default => false
       t.integer :content_model_id
+      t.integer :content_model_field_id
+      t.string  :content_model_field_name
       t.integer :parent_type_id
       t.integer :child_type_id
       t.boolean :has_location, :default => true
@@ -36,9 +38,10 @@ class InitialSocialTable < ActiveRecord::Migration
       t.string :zip
       t.boolean :approved, :default => false
       t.timestamps
+      t.string :url
     end 
     
-    add_index :social_locations, :state, :name => 'state_index'
+    add_index :social_locations, :url
     
     create_table :social_units, :force => true do |t|
       t.string :name
@@ -62,9 +65,6 @@ class InitialSocialTable < ActiveRecord::Migration
 
       t.datetime :approved_until
       t.integer :created_by_id
-
-
-      
 
       t.timestamps
     end   
@@ -122,12 +122,6 @@ class InitialSocialTable < ActiveRecord::Migration
     add_index :social_blocks, [:blocked_user_id],:name =>'blocked'
     add_index :social_blocks, [:end_user_id],:name =>'my_blocked'
 
-    create_table :social_group_requests, :force => true do |t|
-      t.integer :social_unit_id
-      t.integer :end_user_id
-      t.timestamps
-    end   
-    
   end
 
   def self.down
@@ -138,8 +132,6 @@ class InitialSocialTable < ActiveRecord::Migration
     drop_table :social_unit_members
     drop_table :social_invites
     drop_table :social_blocks
-    drop_table :social_group_requests
-
   end
 
 end

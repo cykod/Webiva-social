@@ -4,5 +4,6 @@
   <%= f.radio_buttons :display_type, f.object.class.display_type_select_options,:separator => "<br/>" %>
   <%= f.check_box :child_member,:description => 'Show if a member of the child unit' %>
   <%= f.page_selector :edit_page_id  %>
+  <%= f.page_selector :base_page_id, :label => 'Base group page' %>
 <% end -%>
 </div>

@@ -54,21 +54,48 @@ class SocialFriend < DomainModel
     SocialFriend.destroy_all(['end_user_id=? AND friend_user_id=?',usr1,usr2])
     SocialFriend.destroy_all(['end_user_id=? AND friend_user_id=?',usr2,usr1])
     
-    self.clear_friends_cache(usr1.id)
-    self.clear_friends_cache(usr2.id)
+    self.clear_friends_cache(usr1)
+    self.clear_friends_cache(usr2)
     true
   end
   
   def self.friends_cache(user_id)
-    user_id = user_id.id if user_id.is_a?(EndUser)
+
+    if user_id.is_a?(SocialUser)
+      susr = user_id
+      user_id = susr.end_user_id
+    else
+      user_id = user_id.id if user_id.is_a?(EndUser)
+      susr = SocialUser.user(user_id)
+    end
     
-    friends = DataCache.get_content('SocialFriends',user_id.to_s,'Friends')
+    friends = susr.cache_fetch("SocialFriends")
     unless friends
       friends = SocialFriend.find(:all,:select => 'friend_user_id',:conditions => ['end_user_id = ?',user_id]).map(&:friend_user_id)
-      DataCache.put_content('SocialFriends',user_id.to_s,'Friends', friends)
+      susr.cache_put("SocialFriends",friends)
     end
     
     friends
+  end
+
+  def self.friends_cache_content_profiles(user_id)
+    if user_id.is_a?(SocialUser)
+      susr = user_id
+      user_id = susr.end_user_id
+    else
+      user_id = user_id.id if user_id.is_a?(EndUser)
+      susr = SocialUser.user(user_id)
+    end
+
+    cached_content = susr.cache_fetch("SocialFriendsProfiles")
+    unless cached_content 
+      friends = self.friends_cache(susr)
+      user_profile_entries = UserProfileEntry.fetch_entries(friends).map(&:id)
+      cached_content = [ friends, user_profile_entries ] 
+    end
+    susr.cache_put("SocialFriendsProfiles",cached_content)
+
+    cached_content[0].map { |elm| [ "EndUser",elm ] } + cached_content[1].map { |elm| [ "UserProfileEntry",elm ] }
   end
 
   def self.friends_cache_content(user_id)
@@ -76,7 +103,7 @@ class SocialFriend < DomainModel
   end
   
   def self.clear_friends_cache(user_id)
-    DataCache.expire_content('SocialFriends',user_id.to_s)
+    SocialUser.user(user_id).content_cache_expire
   end
   
 end

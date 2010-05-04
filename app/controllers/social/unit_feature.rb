@@ -3,21 +3,14 @@
 class Social::UnitFeature < ParagraphFeature
 
   feature :social_unit_location, :default_feature => <<-FEATURE
-    <cms:location>
       <cms:groups>
+      <ul class='social_groups'>
       <cms:group>
-          <div class='groups'>
-            <cms:location_link>
-              <cms:img/><br/>
-              <cms:name/>          
-            </cms:location_link>
-          </div>
-        </cms:group>
+        <li><cms:img size='thumb' align='left'/> <cms:link><cms:name/></cms:link>
+        </li>     
+      </cms:group>
+      </ul>
       </cms:groups>
-    </cms:location>
-    <cms:no_location>
-    
-    </cms:no_location>
   FEATURE
   
 
@@ -43,9 +36,10 @@ class Social::UnitFeature < ParagraphFeature
       c.define_value_tag('location:by_category:category') { |t| ( t.attr['plural'] ?  t.locals.grouping[0].pluralize : t.locals.grouping[0])  if t.locals.grouping[0]}
         c.define_expansion_tag('location:by_category:groups') { |t| t.locals.grouping[1].length > 0 }
         c.define_expansion_tag('location:groups') { |t| t.locals.grouping ? t.locals.grouping[1] : data[:groups] }
-        c.define_tag('location:group') { |t| c.each_local_value(t.locals.grouping ? t.locals.grouping[1] : data[:groups] ,t,'group') }
-          c.define_link_tag('group:location') { |tg| data[:group_url].to_s + "/" + tg.locals.group.id.to_s }
-          define_group_tags(c,data)
+
+        c.loop_tag('group') { |t| t.locals.grouping ? t.locals.grouping[1] : data[:groups] }
+          c.define_link_tag('group:') { |tg| data[:options].group_page_url.to_s + "/" + tg.locals.group.url.to_s }
+          define_full_group_tags(c,'group',data)
       c.form_for_tag('selector',:select) { |t| LocationSelector.new(data[:selector]) }
           c.field_tag('selector:state',:control => 'select',
                 :onchange => "if(this.value!='') new Ajax.Updater('select_location_wrapper','#{ajax_url}?select[state]=' + this.value);", :options =>  [['-State-',nil]] + ContentModel.state_select_options(true))
@@ -67,7 +61,7 @@ class Social::UnitFeature < ParagraphFeature
       <cms:join>
       <cms:member_link>Join <cms:group/></cms:member_link>
       </cms:join>
-      <h1><cms:name/></1>
+      <h1><cms:name/></h1>
     </cms:group>
     <cms:no_group>
       Invalid Group
@@ -76,17 +70,17 @@ class Social::UnitFeature < ParagraphFeature
   FEATURE
   
   def social_unit_group_feature(data)
-    webiva_feature(:social_unit_group) do |c|
+    webiva_custom_feature(:social_unit_group) do |c|
       c.define_expansion_tag('group') { |tg| tg.locals.group = data[:group] }
       c.expansion_tag('group:admin') { |t| data[:is_admin] }
-      c.link_tag('group:admin:edit') { |tg| data[:edit_page_url].to_s + "/" + tg.locals.group.id.to_s }
-      
-      c.expansion_tag('group:not_approved:requested') { |tg| SocialGroupRequest.requested?(myself,tg.locals.group) } 
-      c.post_button_tag('group:not_approved:not_requested:button') { |tg| "?request=1" }
-      
+      c.link_tag('group:admin:edit') { |tg| data[:edit_page_url].to_s + "/" + tg.locals.group.url.to_s }
 
+      c.link_tag('group:') { |tg| data[:options].base_page_url.to_s + "/" + tg.locals.group.url.to_s }
+      c.link_tag('group:sub') { |tg| data[:options].base_page_url.to_s + "/" + tg.attr['page'].to_s + '/'  + tg.locals.group.url.to_s }
       c.expansion_tag('group:join') do |t| 
-        if t.attr['any']
+        if !myself.id
+          nil
+        elsif t.attr['any']
           !data[:is_member] && data[:suser].group_count(t.locals.group.social_unit_type_id) == 0
         else
           !data[:is_member] 
@@ -95,47 +89,55 @@ class Social::UnitFeature < ParagraphFeature
       
       c.link_tag('group:join:member') do |t|
           path  = SiteNode.node_path(module_options(:social).notification_page_id)
-          arg_opts = "act=add_member&group=#{t.locals.group.id}"
+          arg_opts = "cms_partial_page=1&act=add_member&group=#{t.locals.group.id}"
           { :href => 'javascript:void(0);', :onclick => "SCMS.remoteOverlay('#{path}','#{arg_opts}');" }          
       end
       c.define_link_tag("group:invite") do |t|
             msg_opts = module_options(:social)
             path  = SiteNode.node_path(msg_opts.notification_page_id)
-            arg_opts = "act=invite_members&group=#{t.locals.group.id}"
+            arg_opts = "cms_partial_page=1&act=invite_members&group=#{t.locals.group.id}"
             { :href => 'javascript:void(0);', :onclick => "SCMS.remoteOverlay('#{path}','#{arg_opts}');" }
-        end      
-      if data[:content_model]
-        data[:content_model].content_model_fields.each do |fld|
-          define_mdl_tag(c,fld,data)
-        end
-      end
+      end      
       
       c.expansion_tag('group:blog') do |t|
         Blog::BlogBlog.find_by_target_type_and_target_id('SocialUnit',t.locals.group.id)
       end
       
-      define_group_tags(c,data)
+      define_full_group_tags(c,"group",data)
     end
   end
-  
-  def define_mdl_tag(c,field,data) 
-    c.define_value_tag("group:#{field.field}") { |t| display_content_value(data[:entry],field,t.attr) }
-  end  
-  
   
 
   feature :social_unit_edit_group, :default_feature => <<-FEATURE
     <cms:group>
       <h1>Edit <cms:name/></h1>
-      <cms:form/>
+      <ul class='webiva_form social_group_form'>
+       <cms:field>
+         <cms:item>
+           <cms:label/><cms:control/>
+         </cms:item>
+       </cms:field/>
+      <cms:details>
+        <cms:field>
+          <cms:item/>
+        </cms:field>
+      </cms:details>
+       <cms:submit/>
+      </ul>
     </cms:group>
   FEATURE
   
   def social_unit_edit_group_feature(data)
-    webiva_feature(:social_unit_edit_group) do |c|
-      c.define_expansion_tag('group') { |tg| tg.locals.group = data[:group] }
-      self.define_group_tags(c,data)
-      c.define_tag('group:form') { |t| data[:frm] }      
+    webiva_custom_feature(:social_unit_edit_group) do |c|
+      c.form_for_tag('group','group', :html => { :enctype => 'multipart/form-data' }) { |tg| data[:is_admin] ? (tg.locals.group = data[:group]) : nil } 
+      self.define_group_tags(c,'group',data)
+      c.form_fields_tag('group:field',data[:options].ordered_field_list) 
+
+      c.fields_for_tag('group:details','group[entry]') do |tg| 
+        data[:options].publication ? tg.locals.group.model_entry : nil
+      end
+      c.publication_field_tags('group:details',data[:options].publication) if data[:options].publication
+      c.button_tag('group:submit')
     end
   end
 
@@ -164,7 +166,18 @@ class Social::UnitFeature < ParagraphFeature
       c.expansion_tag("#{base}:approved") { |tg| tg.locals.send(local).approved? }
       c.value_tag("#{base}:name") { |tg| tg.locals.send(local).name }
       c.value_tag("#{base}:parent") { |tg| tg.locals.send(local).parent ? tg.locals.send(local).parent.name : nil }
+      c.link_tag("#{base}:content") { |tg| tg.locals.send(local).content_node.link } 
       c.value_tag("#{base}:location") { |tg| tg.locals.send(local).social_location ? tg.locals.send(local).social_location.name : nil }
+    end
+
+    def define_full_group_tags(c,base,data,opts = {})
+      local = opts[:local] || "group"
+      define_group_tags(c,base,opts)
+
+      if data[:social_unit_type]
+        c.expansion_tag(base + ":details") { |t| t.locals.entry = t.locals.send(local).model_entry }
+        c.content_model_fields_value_tags('group:details', data[:social_unit_type].display_content_model_fields) if data[:social_unit_type].content_model
+      end
     end
   end
 
@@ -192,14 +205,14 @@ class Social::UnitFeature < ParagraphFeature
     webiva_feature(:social_unit_members) do |c|
       c.value_tag('group_id') { |t| data[:group].id if data[:group] }
       c.loop_tag('member') { |t| data[:members] }
-        c.value_tag('member:name') { |t| t.locals.member.end_user.name  if t.locals.member.end_user}
+        c.define_user_details_tags("member", :local => 'member' )
         c.image_tag('member:img') { |t| t.locals.member.end_user.image  if t.locals.member.end_user }
-        c.link_tag('member:detail') { |t| data[:profile_url].to_s + "/" + t.locals.member.end_user_id.to_s   if t.locals.member.end_user }
+        c.link_tag('member:detail') { |t| data[:profile_url].to_s + "/" + t.locals.member.url.to_s   if t.locals.member.end_user }
         c.expansion_tag('member:admin') { |t| data[:admin] }
           c.link_tag('member:admin:remove') do |t|
               msg_opts = module_options(:social)
               @notification_path  ||= SiteNode.node_path(msg_opts.notification_page_id)
-              arg_opts = "act=remove_member&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
+              arg_opts = "cms_partial_page=1&act=remove_member&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
               { :href => 'javascript:void(0);', :onclick => "SCMS.remoteOverlay('#{@notification_path}','#{arg_opts}');" }          
           end
           c.expansion_tag('member:admin:promote') { |t| t.locals.member.role == 'admin' }
@@ -207,7 +220,7 @@ class Social::UnitFeature < ParagraphFeature
               msg_opts = module_options(:social)
               @notification_path  ||= SiteNode.node_path(msg_opts.notification_page_id)
               if t.locals.member.role != 'admin'
-                arg_opts = "act=promote&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
+                arg_opts = "cms_partial_page=1&act=promote&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
                 { :href => 'javascript:void(0);', :onclick => "SCMS.remoteOverlay('#{@notification_path}','#{arg_opts}');" }          
               else
                 nil
@@ -218,7 +231,7 @@ class Social::UnitFeature < ParagraphFeature
               msg_opts = module_options(:social)
               @notification_path  ||= SiteNode.node_path(msg_opts.notification_page_id)
               if t.locals.member.role == 'admin'
-                arg_opts = "act=demote&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
+                arg_opts = "cms_partial_page=1&act=demote&group=#{data[:group].id}&user=#{t.locals.member.end_user_id}"
                 { :href => 'javascript:void(0);', :onclick => "SCMS.remoteOverlay('#{@notification_path}','#{arg_opts}');" }          
               else
                 nil
@@ -247,6 +260,7 @@ class Social::UnitFeature < ParagraphFeature
       c.value_tag('group:state') { |t| t.locals.group[1] ? t.locals.group[1].state : nil   }
       c.value_tag('group:count') { |t| t.locals.group[2]  }
       c.link_tag('group:canonical') { |t| "#{data[:group_page_url]}/#{t.locals.group[0].id}" }
+
     end
   
   end  
