@@ -51,10 +51,12 @@ class Social::UserRenderer < Social::SocialRenderer
     
     if @user && @options.include_groups
       @groups = SocialUnitMember.member_groups(@user.id)
+      set_page_connection(:group_list,@groups.map(&:social_unit)) 
       @group_types = @groups.group_by(&:social_unit_type_id)
       @primary_group = @group_types[@options.social_unit_type_id][0] if @group_types[@options.social_unit_type_id]
     else
       @groups = []
+      set_page_connection(:group_list,[]) 
       @group_types = {}
       @primary_group = nil
     end

@@ -11,6 +11,7 @@ class Social::UserController < ParagraphController
                   [:user_profile_entry_private, 'Private Profile Entry', :target],
                   [:social_user,"Social User Private",:target], 
                   [:content_list,"Friend and Group List",:content_list ],
+                  [:group_list,"Social Unit List",:target_list],
                   [:content_list_private,"Friend and Group list Private",:content_list] ]
   
   editor_for :friends, :name => 'User Friends', :inputs => [[ :user_url, 'User Profile URL', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_friends ]
