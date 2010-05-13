@@ -8,6 +8,7 @@
   <%= f.check_box :has_children %>
   <%= f.check_box :child_message, :description => 'Include child members in messages' %>
   <%= f.check_box :auto_friend %>
+  <%= f.check_box :validate_join %>
   <%= f.select :parent_type_id, [['--No Parent Type--',nil]] + SocialUnitType.select_options(:order => 'name') %>
   <%= f.select :child_type_id, [['--No Child Type--',nil]] + SocialUnitType.select_options(:order => 'name') %>
   

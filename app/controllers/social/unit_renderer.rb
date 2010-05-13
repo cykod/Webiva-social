@@ -7,6 +7,7 @@ class Social::UnitRenderer < Social::SocialRenderer
 
   paragraph :location, :ajax => true
   paragraph :group
+  paragraph :group_join
   paragraph :edit_group
   paragraph :members
   paragraph :create_group
@@ -40,6 +41,33 @@ class Social::UnitRenderer < Social::SocialRenderer
       @locs = [['--Select Location--',nil]] + SocialLocation.select_options(:conditions => ['state=?',params[:select][:state]],:order =>'name')
         
       render_paragraph :text => "<select id='select_location' name='select[location]' onchange=\"if(this.value!='') document.location = '#{site_node.node_path}/' + this.value;\">" + options_for_select(@locs) + "</select>"
+  end
+
+
+  def group_join
+    @options = paragraph_options(:group_join)
+
+    conds = {}
+    conds[:social_unit_type_id] = @options.social_unit_type_id if @options.social_unit_type_id
+    @groups = SocialUnit.find(:all,:conditions=>conds,:order => 'name')
+
+    @groups = @groups.reject { |grp| grp.is_member?(myself) }
+
+    if request.post? && params[:group]
+      group_id = params[:group].to_i
+      @group = @groups.detect { |grp| grp.id == group_id } 
+      if @group
+        @group.request_membership(myself)
+        @added=true
+
+        if @options.joined_page_url
+          return redirect_paragraph @options.joined_page_url
+        end
+      end
+    end
+
+
+    render_paragraph :feature => :social_unit_group_join
   end
 
   def find_location_and_group

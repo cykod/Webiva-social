@@ -54,7 +54,32 @@ class Social::UnitFeature < ParagraphFeature
     integer_options :location
   end
   
-
+  feature :social_unit_group_join, :default_feature => <<-FEATURE
+  <cms:join>
+  <ul class='social_groups'>
+    <cms:group>
+      <li><cms:option> <cms:name/></cms:option></li>
+  </cms:group>
+  </ul>
+    <cms:submit/>
+  </cms:join>
+  <cms:joined>
+   You have 
+  </cms:joined>
+  FEATURE
+  
+  def social_unit_group_join_feature(data)
+    webiva_feature(:social_unit_group_join,data) do |c|
+      c.form_for_tag('join','group') { |t| data[:added] ? nil : HashModel.new({}) }
+      c.loop_tag('join:group') { |t| data[:groups] }
+      define_full_group_tags(c,"join:group",data)
+      c.define_tag('join:group:option') do |t|
+        content_tag('label', radio_button_tag('group',t.locals.group.id) + t.expand)
+      end
+      c.button_tag('submit',:value => 'Join')
+      c.expansion_tag('joined') { |t| data[:added] }
+    end
+  end
 
   feature :social_unit_group, :default_feature => <<-FEATURE
     <cms:group>

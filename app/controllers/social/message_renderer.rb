@@ -101,17 +101,16 @@ class Social::MessageRenderer < Social::SocialRenderer
     if @group && myself.id && !@group.social_unit_members.find_by_end_user_id(myself.id)
       @confirmed = params[:confirm] ? true : false
       if @confirmed
-        
-        msg = MessageTemplate.create_message('member_request',nil, { :user => myself, :group_name => @group.name })
-        msg.send_notification(@group.administrators,'/social/member_notification', :group_id => @group.id, :from_user_id => myself.id)
+        @added = @group.request_membership(myself)       
       end
       
-      @view_data = { :group => @group, :renderer => self, :confirmed => @confirmed , :ajax => ajax?}
+      @view_data = { :group => @group, :renderer => self, :confirmed => @confirmed , :ajax => ajax?, :added => @added}
       render_paragraph :partial => '/social/message/add_member', :locals => @view_data
     else
       render_paragraph :text => 'Invalid Notification'
     end 
   end
+
   
   def invite_members
     @group = SocialUnit.find_by_id(params[:group])

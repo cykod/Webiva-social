@@ -4,7 +4,9 @@ class Social::UnitController < ParagraphController
 
   editor_header 'Social Networking Paragraphs'
   
-  editor_for :location, :name => 'Group List Display ', :features => [ :social_unit_location ], :inputs => [ [:location_id,"Location Id",:path ]] 
+  editor_for :location, :name => 'Group List Display ', :feature =>  :social_unit_location, :inputs => [ [:location_id,"Location Id",:path ]] 
+
+  editor_for :group_join, :name => 'Join a group List', :feature => :social_unit_group_join
   
   editor_for :create_group, 'name' => 'Create Group', :features => [ :social_unit_create_group ]
   
@@ -33,6 +35,17 @@ class Social::UnitController < ParagraphController
     page_options :group_page_id
     
     has_options :display, [['No location','none'],['User Location','own'],['Page Connection','connection']]
+  end
+
+
+  class GroupJoinOptions < HashModel
+    attributes :social_unit_type_id => 0, :joined_page_id => nil
+
+    page_options :joined_page_id
+
+    options_form( 
+          fld(:social_unit_type_id, :select, :options => Proc.new { SocialUnitType.select_options_with_nil("Group") }),
+          fld(:joined_page_id, :page_selector))
   end
   
   class GroupOptions < HashModel

@@ -19,6 +19,7 @@ class InitialSocialTable < ActiveRecord::Migration
       t.integer :parent_type_id
       t.integer :child_type_id
       t.boolean :has_location, :default => true
+      t.boolean :validate_join, :default => true
       t.string :category_options
       t.integer :missing_image_id
       t.boolean :social_unit_types, :auto_friend 

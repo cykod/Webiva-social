@@ -206,6 +206,18 @@ class SocialUnit < DomainModel
   end
   
 
+  # Requests member ship in a group by sending a notifications to admins
+  # or adds the member if validate join is not set
+  def request_membership(usr)
+    if self.social_unit_type.validate_join?
+      msg = MessageTemplate.create_message('member_request',nil, { :user => usr, :group_name => self.name })
+      msg.send_notification(self.administrators,'/social/member_notification', :group_id => self.id, :from_user_id => usr.id)
+      false
+    else
+      self.add_member(usr)
+      true
+    end
+  end
   
   def add_member_with_notification(usr,status='active',role='member')
     if(usr)

@@ -9,13 +9,21 @@
  <td valign='top' class='social_notification_img' ><%= group.image_file.image_tag(:preview) if group.image_file %></td>
  <td valign='center' class='social_notification_body' >
  <% if confirmed -%>
+  <% if added %>
+   <%= "You have joined <b>%s</b>" / h(group.name) %>
+  <% else -%>
   <p>Your request has been submitted</p>
+   <% end -%>
   <p>
     <button onclick='document.location="?"; return false;'>Close Window</button>
 <% else -%>
+  <% if group.social_unit_type.validate_join?  %>
   <p>A message will be sent to <b><%= h group.name %></b> requesting they confirm your membership</p>
+   <% else -%>
+   <p>Join <b><%=  h group.name %></b>?</p>
+ <% end -%>
   <p>
-    <button onclick='$("social_add_member_form").onsubmit(); return false;'>Request Membership</button> &nbsp;&nbsp; <button onclick='SCMS.closeOverlay(); return false;'>Cancel</button>
+    <button onclick='$("social_add_member_form").onsubmit(); return false;'>Join</button> &nbsp;&nbsp; <button onclick='SCMS.closeOverlay(); return false;'>Cancel</button>
   </p>
 <% end -%>
   </td>
