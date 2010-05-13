@@ -119,7 +119,8 @@ class Social::Manage::UnitsController < ModuleController
         redirect_to :action => 'index',:path => [@social_unit_type.id]
       end
     end    
-    
+     require_js('cms_form_editor')
+
     if @social_unit_type.has_parents?
       @parents = [["--No #{@social_unit_type.parent_name}--",nil]] + SocialUnit.find_select_options(:all,:conditions => { :social_unit_type_id => @social_unit_type.parent_type_id },:order => 'name')
     end
