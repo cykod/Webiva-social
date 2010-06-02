@@ -119,6 +119,8 @@ class Social::Manage::UnitsController < ModuleController
         redirect_to :action => 'index',:path => [@social_unit_type.id]
       end
     end    
+    # Help enbiggenfy any wysiwyg editors that are hidden in the tab
+    header_html('<script> cmsEditorOptions = { height: "500px" }; </script>')
      require_js('cms_form_editor')
 
     if @social_unit_type.has_parents?
