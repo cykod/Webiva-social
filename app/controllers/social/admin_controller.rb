@@ -5,7 +5,7 @@ class Social::AdminController < ModuleController
   permit 'social_config'
 
   component_info 'Social', :description => 'Social Networking support', 
-                              :access => :public,
+                              :access => :private,
                               :dependencies => [ 'message', 'user_profile'] 
                               
   # Register a handler feature
