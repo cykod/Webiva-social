@@ -120,7 +120,7 @@ class Social::UserRenderer < Social::SocialRenderer
   def get_user_from_page_connection
     conn_type,conn_id = page_connection
     if conn_type == :user_url
-      profile = UserProfileEntry.fetch_published_profile(conn_id,@options.profile_type_id)
+      profile = UserProfileEntry.find_published_profile(conn_id,@options.profile_type_id)
       user = profile.end_user if profile
     elsif conn_type == :user
       conn_id      

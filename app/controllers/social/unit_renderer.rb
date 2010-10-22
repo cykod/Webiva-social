@@ -33,8 +33,13 @@ class Social::UnitRenderer < Social::SocialRenderer
 
     require_ajax_js 
 
+    @output = renderer_cache(SocialUnit,nil,:expires => 200) do |cache|
+
+      cache[:feature] = social_unit_location_feature
+    end
+
     @selector =  { :state => @state, :location => (@loc ? @loc.id : nil)  }
-    render_paragraph :text => social_unit_location_feature
+    render_paragraph :text => @output.feature
   end
 
   def render_locations_select

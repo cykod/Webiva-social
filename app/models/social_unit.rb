@@ -38,7 +38,7 @@ class SocialUnit < DomainModel
 
   def entry_validation
    if @set_entry
-     self.errors.add_by_base('Invalid details') if !self.model_entry.valid?
+     self.errors.add_to_base('Invalid details') if !self.model_entry.valid?
    end
   end
 

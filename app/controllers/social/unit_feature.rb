@@ -95,7 +95,7 @@ class Social::UnitFeature < ParagraphFeature
   FEATURE
   
   def social_unit_group_feature(data)
-    webiva_custom_feature(:social_unit_group) do |c|
+    webiva_custom_feature(:social_unit_group,data) do |c|
       c.define_expansion_tag('group') { |tg| tg.locals.group = data[:group] }
       c.expansion_tag('group:admin') { |t| data[:is_admin] }
       c.link_tag('group:admin:edit') { |tg| data[:edit_page_url].to_s + "/" + tg.locals.group.url.to_s }
