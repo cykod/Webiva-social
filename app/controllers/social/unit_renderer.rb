@@ -101,8 +101,6 @@ class Social::UnitRenderer < Social::SocialRenderer
 
   def group
 
-    require_ajax_js 
-    
     @options = paragraph_options(:group)
     @suser = social_user(myself)
     
@@ -244,8 +242,6 @@ class Social::UnitRenderer < Social::SocialRenderer
       is_admin = @group.is_admin?(myself)
     end
     
-    require_ajax_js
-
     data = { :admin => is_admin, :group => @group, :members => @members, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
     render_paragraph :text => social_unit_members_feature(data)
   
@@ -299,7 +295,7 @@ class Social::UnitRenderer < Social::SocialRenderer
   def get_group
     conn_type,conn_id = page_connection
 
-    if @options.social_unit_type_id > 0
+    if @options.social_unit_type_id.to_i > 0
       if editor?
           @group = SocialUnit.find(:first,:conditions => { :social_unit_type_id => @options.social_unit_type_id })
       elsif conn_type == :group
