@@ -23,6 +23,10 @@ class SocialUnit < DomainModel
   belongs_to :social_unit_type
 
   before_save :add_url
+
+  after_save :import_user_segment_list_submit
+
+  attr_accessor :import_user_segment_list
  
 
   cached_content :identifier => :url
@@ -44,6 +48,12 @@ class SocialUnit < DomainModel
 
   def entry_save
     self.model_entry.save if @set_entry
+  end
+
+  def import_user_segment_list_submit
+   if self.import_user_segment_list.to_i > 0 && user_list = UserSegment.find_by_id(self.import_user_segment_list)
+     self.run_worker(:import_user_segment_list_run,:user_segment_id => user_list.id)
+   end
   end
 
   public
@@ -103,6 +113,13 @@ class SocialUnit < DomainModel
   
   def class_name
     self.social_unit_type.name
+  end
+
+  def import_user_segment_list_run(args={})
+    segment = UserSegment.find_by_id(args[:user_segment_id])
+    segment.each do |user|
+      self.add_member(user)
+    end
   end
   
   

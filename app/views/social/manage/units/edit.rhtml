@@ -20,6 +20,7 @@
       <%= f.text_field :state %>
       <%= f.text_field :zip %>
       <%= f.text_field :lead_source %>
+      <%= f.select :import_user_segment_list, UserSegment.select_options_with_nil %>
       <%= f.header 'Approval' -%> 
       <%= f.radio_buttons :approved, [['Yes',true],['No',false]] -%>
       <%= f.date_field :approved_until, :blank => true -%>

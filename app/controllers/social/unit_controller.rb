@@ -16,7 +16,7 @@ class Social::UnitController < ParagraphController
                   [:group_admin,'Group Admin Target',:target], 
                   [:social_unit,'Social Unit Public',:social_unit ], 
                   [:social_unit_private,'Social Unit Private',:social_unit], 
-                  [ :group_id, 'Group Id', :integer ] ],
+                  [ :group_id, 'Group Id', :path ] ],
     :inputs => [ [ :group_id, 'Group URL', :path ], [ :group, "Group Target", :social_unit] ], :features => [ :social_unit_group]
   
   editor_for :edit_group, :name => 'Edit Group', :features => [ :social_unit_edit_group ], :inputs => [ [ :group_id, 'Group Id', :path ] ]
