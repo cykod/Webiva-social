@@ -236,10 +236,12 @@ class Social::UnitRenderer < Social::SocialRenderer
     
 
     if @group
-      conditions['social_unit_id'] = @group.id
-      @pages,@members = SocialUnitMember.paginate(page,:conditions => conditions,:per_page => options.per_page,:order =>' social_unit_members.created_at DESC')
-      @member_ids = @members.map(&:end_user_id)
-      @members= UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id)
+      conditions['social_unit_id'] = @group.id unless @options.show_all
+      @pages,@user_members = SocialUnitMember.paginate(page,:conditions => conditions,:per_page => options.per_page,:order => @options.alpha ? 'end_users.last_name, end_users.first_name' : 'social_unit_members.created_at DESC',:joins => :end_user)
+      @member_ids = @user_members.map(&:end_user_id)
+      @member_entries= UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id).index_by(&:end_user_id)
+
+      @members = @user_members.map { |m| @member_entries[m.end_user_id] }.compact
 
       is_admin = @group.is_admin?(myself)
     end

@@ -140,8 +140,9 @@ class Social::UnitController < ParagraphController
   end
   
   class MembersOptions < HashModel
-    attributes :profile_page_id =>nil, :per_page => 10, :status => '', :profile_type_id => nil
+    attributes :profile_page_id =>nil, :per_page => 10, :status => '', :profile_type_id => nil, :show_all => false, :alpha => false
     page_options :profile_page_id 
+    boolean_options :show_all,:alpha
     validates_presence_of :profile_type_id
 
       options_form(
@@ -149,7 +150,10 @@ class Social::UnitController < ParagraphController
         fld(:profile_type_id,:select,:options => lambda { UserProfileType.select_options_with_nil },:required => true),
         fld(:status,:text_field,:description => 'Only show members with this status'),
         fld(:per_page,:text_field),
-        fld(:approved,:check_box,:description => 'only show approved members'))
+        fld(:approved,:check_box,:description => 'only show approved members'),
+        fld(:show_all,:yes_no),
+        fld(:alpha,:yes_no,:label => 'Show alphabetically (instead of by created)')
+      )
         
     
     

@@ -175,6 +175,70 @@ class Social::UserRenderer < Social::SocialRenderer
     render_paragraph :text => social_user_search_feature(data)
   end
 
+  def user_edit
+    connection_type,conn_id = page_connection
+    
+    if(!conn_id.blank?)
+      @user_profile = UserProfileEntry.find_published_profile(conn_id,@options.profile_type_id)
+
+    end
+
+    @options = paragraph_options(:view_profile)
+    @mod_opts = module_options(:social)
+    
+
+    @user, @user_profile = fetch_profile
+    
+    @outstanding_invite = false
+    if @user
+      @is_friend = SocialFriend.is_friend?(myself,@user) 
+      
+      if !@is_friend
+        @outstanding_invite = SocialFriend.has_invite?(myself,@user)
+      end
+      @is_myself = myself.id == @user.id 
+    end
+
+    @suser = social_user(@user) if @user
+    
+    @private_view = true  if @is_friend || @is_myself
+
+    if @user_profile
+      @content_model = @user_profile.content_model
+      set_title(@user.full_name)
+      set_title(@user.full_name,"profile")
+    end
+
+    set_page_connection(:user_private,@private_view ? @user : nil) 
+    set_page_connection(:user,@user)
+    set_page_connection(:user_profile_entry,@user_profile)
+    set_page_connection(:user_profile_entry_private,@private_view ? @user_profile: nil)
+    set_page_connection(:social_user,@suser)
+    set_page_connection(:content_list,@suser ? @suser.nested_full_content_list : nil)
+    set_page_connection(:content_list_private,@private_view ? @suser.nested_full_content_list : nil)
+
+    set_page_connection(:profile_content, @user_profile ? ['UserProfileEntry',@user_profile.id] : nil)
+    set_content_node(@user_profile)
+    
+    if @user && @options.include_groups
+      @groups = SocialUnitMember.member_groups(@user.id)
+      set_page_connection(:group_list,@groups.map(&:social_unit)) 
+      @group_types = @groups.group_by(&:social_unit_type_id)
+      @primary_group = @group_types[@options.social_unit_type_id][0] if @group_types[@options.social_unit_type_id]
+    else
+      @groups = []
+      set_page_connection(:group_list,[]) 
+      @group_types = {}
+      @primary_group = nil
+    end
+
+    require_social_js
+    
+    render_paragraph :text => social_view_profile_feature
+  end
+
+
+
   def require_social_js
     require_js('prototype.js')
     require_js('builder')

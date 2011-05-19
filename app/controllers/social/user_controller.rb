@@ -19,6 +19,8 @@ class Social::UserController < ParagraphController
   editor_for :friend_groups, :name => 'Friend Groups', :inputs => [[ :user_id, 'User Id', :path ], [:user, 'Profile User',:target ]] , :features => [ :social_user_friend_groups ]
   
   editor_for :user_search, :name => 'User Search', :features => [ :social_user_search ]
+
+  editor_for :user_edit, :name => 'Edit User', :features => [:social_user_edit ]
   
   class ViewProfileOptions < HashModel
     attributes :social_unit_type_id => nil, :group_page_id => nil, :profile_type_id => nil,:include_groups => true
@@ -70,6 +72,16 @@ class Social::UserController < ParagraphController
     page_options :friends_page_id
 
     def profile_type_options; UserProfileType.select_options_with_nil; end
+  end
 
+  class EditUserOptions < HashModel
+    attributes :user_profile_type_id => nil,:create_user => true
+
+    boolean_options :create_user
+         
+    options_form(
+      fld(:user_profile_type_id,:select, :options => Proc.new {  UserProfileType.select_options_with_nil }, :required => true),
+      fld(:create_user,:yes_no)
+    )
   end
 end
