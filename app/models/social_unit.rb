@@ -246,6 +246,27 @@ class SocialUnit < DomainModel
       end
     end
   end
+
+  def published_blog_post(args = {})
+    post = Blog::BlogPost.find_by_id(args[:blog_post_id])
+
+
+    tpl = MailTemplate.find_by_id(Social::AdminController.module_options.email_member_template_id)
+
+    if post && tpl
+      link = Configuration.domain_link(post.content_node.link)
+      atr = { 'subject' => post.title,
+              'description' => post.preview,
+              'social_unit' => self.name,
+              'url' => link,
+              'link' => "<a href='#{link}'>Full Story</a>"
+            }
+      self.end_users.each do |user|
+        tpl.deliver_to_user(user,atr)
+      end
+    end
+
+  end
   
   protected
 

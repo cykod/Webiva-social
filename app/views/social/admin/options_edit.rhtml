@@ -7,6 +7,7 @@
 <%= f.select :notification_page_id , SiteNode.page_options %>
 <%= f.end_user_selector :automatic_friend_id, :no_name => true %>
 <%= f.select :automatic_message_id, [['--Select automatic Message--','']] +  MessageTemplate.find_select_options %>
+<%= f.select :email_member_template_id, [['--Select mail template--',nil]] + MailTemplate.site_template_options, :label => 'Social Unit Blog Post Member Message', :description => 'Automatic message sent to members after a new blog post is published, %%subject%%, %%social_unit%%, %%description%%, %%link%%' %>
 
 <%= f.submit_tag 'Save' %>
 

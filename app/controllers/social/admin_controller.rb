@@ -28,6 +28,7 @@ class Social::AdminController < ModuleController
   
   register_handler :editor, :auth_user_register_feature, "Social::UserRegisterExtension"
   register_handler :editor, :auth_user_register_feature, "Social::UserRegisterInviteExtension"
+  register_handler :blog, :targeted_after_publish, "Social::Autopublish"
 
   linked_models :end_user, 
                 [ :social_user, :social_unit_member, :social_friend, [ :social_friend, :friend_user_id ] ]
@@ -93,7 +94,7 @@ class Social::AdminController < ModuleController
   end
   
   class Options < HashModel
-    attributes :location_name => 'Group',:notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_message_id => nil, :show_locations => true
+    attributes :location_name => 'Group',:notification_page_id => nil, :role_list => '', :roles => [], :automatic_friend_id => nil, :automatic_message_id => nil, :show_locations => true, :email_member_template_id => nil
 
     boolean_options :show_locations
     
