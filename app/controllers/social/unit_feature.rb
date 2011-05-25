@@ -229,7 +229,9 @@ class Social::UnitFeature < ParagraphFeature
   def social_unit_members_feature(data)
     webiva_feature(:social_unit_members) do |c|
       c.value_tag('group_id') { |t| data[:group].id if data[:group] }
-      c.loop_tag('member') { |t| data[:members] }
+      c.loop_tag('group') { |t| data[:groups] }
+      c.h_tag('group:group_name') { |t| t.locals.group.name }
+      c.loop_tag('member') { |t| t.locals.group ? t.locals.group.end_users.map { |eu| data[:member_entries][eu.id] }.compact : data[:members] }
         c.define_user_details_tags("member", :local => 'member' )
         c.image_tag('member:img') { |t| t.locals.member.end_user.image  if t.locals.member.end_user }
         c.link_tag('member:detail') { |t| data[:profile_url].to_s + "/" + t.locals.member.url.to_s   if t.locals.member.end_user }

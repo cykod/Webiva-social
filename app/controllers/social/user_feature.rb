@@ -47,6 +47,8 @@ class  Social::UserFeature < ParagraphFeature
       c.loop_tag('user:group') { |t| data[:groups].map(&:social_unit) }
       define_group_tags(c,'user:group') 
 
+      c.expansion_tag('is_group_admin') { |t| data[:is_group_admin] }
+
 
       c.define_link_tag("user:message") do |tag|
         msg_opts = module_options(:message)

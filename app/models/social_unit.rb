@@ -13,7 +13,7 @@ class SocialUnit < DomainModel
   has_many :social_friends, :include => :end_user
   has_many :friends, :through => :social_friends,:class_name => 'EndUser',:order => 'last_name,first_name', :source => :friend_user
   
-  has_many :end_users, :class_name => 'EndUser', :through => :members, :source => :end_user
+  has_many :end_users, :class_name => 'EndUser', :through => :members, :source => :end_user, :order => 'end_users.last_name, end_users.first_name'
   has_many :members, :class_name => 'SocialUnitMember'
   has_many :child_members, :class_name => 'SocialUnitMember', :foreign_key => 'social_unit_parent_id'
   has_many :child_end_users, :class_name => 'EndUser', :through => :child_members, :source => :end_user

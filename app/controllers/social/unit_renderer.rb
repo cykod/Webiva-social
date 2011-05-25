@@ -233,9 +233,9 @@ class Social::UnitRenderer < Social::SocialRenderer
     if !options.status.blank?
       conditions['status'] = options.status 
     end
-    
 
     if @group
+      @groups = SocialUnit.find(:all,:order => 'name') if @options.show_all
       conditions['social_unit_id'] = @group.id unless @options.show_all
       @pages,@user_members = SocialUnitMember.paginate(page,:conditions => conditions,:per_page => options.per_page,:order => @options.alpha ? 'end_users.last_name, end_users.first_name' : 'social_unit_members.created_at DESC',:joins => :end_user)
       @member_ids = @user_members.map(&:end_user_id)
@@ -248,7 +248,7 @@ class Social::UnitRenderer < Social::SocialRenderer
     
     require_ajax_js
 
-    data = { :admin => is_admin, :group => @group, :members => @members, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
+    data = { :admin => is_admin, :group => @group, :groups => @groups, :members => @members, :member_entries => @member_entries, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
     render_paragraph :text => social_unit_members_feature(data)
   
   end
