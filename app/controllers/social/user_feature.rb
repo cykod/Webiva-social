@@ -142,8 +142,8 @@ class  Social::UserFeature < ParagraphFeature
           c.field_tag('user_search:name')
           c.submit_tag('update_butt',:default => 'Search')    
       c.define_expansion_tag('searched') { |t| data[:results] ? true : false }
-      c.define_user_tags('result') { |t| t.locals.result.end_user }
       c.loop_tag('result') { |t| data[:results] }
+      c.user_details_tags('result',:local => 'result')
 
       c.define_link_tag('result:profile') { |t| data[:options].profile_page_node.link t.locals.result.url if data[:options].profile_page_node }
     end
