@@ -113,15 +113,20 @@ class  Social::UserFeature < ParagraphFeature
   
   feature :social_user_search, :default_feature => <<-FEATURE
  <cms:user_search> 
-   Search For: <cms:name/> <cms:update_butt/> <br/>
-   <cms:where/> 
+   Search User For: <cms:name/> <cms:update_butt/> 
  </cms:user_search>
  <cms:searched>
    <cms:results>
+   <ul class='results'>
     <cms:result>
+      <li>
+       <cms:img size='thumb'/>
        <cms:profile_link><cms:name/></cms:profile_link>
+      </li>
     </cms:result>
+    </ul>
    </cms:results>
+   
    <cms:no_results>
     No Results
    </cms:no_results>
@@ -135,17 +140,12 @@ class  Social::UserFeature < ParagraphFeature
     webiva_feature(:social_user_search) do |c|
       c.form_for_tag('user_search',:search) { |t| UserSearch.new(params[:search]) }
           c.field_tag('user_search:name')
-          c.field_tag('user_search:where',:control => :radio_buttons, :options => [ ['All Groups','all'],['Parent Groups','national'],['Member Groups','local']], :separator => 'XXX' )
           c.submit_tag('update_butt',:default => 'Search')    
       c.define_expansion_tag('searched') { |t| data[:results] ? true : false }
+      c.define_user_tags('result') { |t| t.locals.result.end_user }
       c.loop_tag('result') { |t| data[:results] }
-        c.define_value_tag('result:name') { |t| t.locals.result[:user].name }
-        c.define_image_tag('result:img') { |t| t.locals.result[:user].image }
-        c.define_image_tag("result:second_img") { |t| t.locals.result[:user].second_image }
-        c.define_image_tag("result:fallback_img") { |t| t.locals.result[:user].second_image || t.locals.result[:user].image }
-        
-        c.define_value_tag('result:groups') { |t| t.locals.result[:groups].map { |group| group.social_unit.name }.join(", ") }
-        c.define_link_tag('result:profile') { |t| "#{data[:profile_page]}/#{t.locals.result[:user].id}" }
+
+      c.define_link_tag('result:profile') { |t| data[:options].profile_page_node.link t.locals.result.url if data[:options].profile_page_node }
     end
   end
   

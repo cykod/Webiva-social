@@ -58,9 +58,17 @@ class Social::UserController < ParagraphController
   end
   
   class UserSearchOptions < HashModel
-    attributes :social_unit_type_id => nil, :social_unit_parent_type_id => nil, :profile_page_id  => nil, :social_unit_type_id => nil, :profile_id => nil
-    integer_options :social_unit_type_id,:social_unit_parent_type_id,:profile_page_id
+    attributes :user_profile_type_id => nil, :profile_page_id  => nil
     page_options :profile_page_id
+
+  options_form(
+      fld(:user_profile_type_id,:select, :options => Proc.new {  UserProfileType.select_options_with_nil }, :required => true),
+      fld(:profile_page_id, :page_selector)
+    )
+
+    def user_profile_type
+      @user_profile_type ||= UserProfileType.find_by_id(self.user_profile_type_id)
+    end
   end
   
   class FriendGroupOptions < HashModel
@@ -72,6 +80,7 @@ class Social::UserController < ParagraphController
     page_options :friends_page_id
 
     def profile_type_options; UserProfileType.select_options_with_nil; end
+
   end
 
   class EditUserOptions < HashModel

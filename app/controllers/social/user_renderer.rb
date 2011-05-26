@@ -137,44 +137,17 @@ class Social::UserRenderer < Social::SocialRenderer
     @suser = social_user(myself)
     
     if params[:search] && !params[:search][:name].blank?
-      full_name = params[:search][:name].strip
-      first_name,last_name = full_name.split(" ").map { |e| e=e.strip.downcase; e.blank? ? nil : e }.compact
       
-      if first_name && last_name
-        @conditions = '(first_name LIKE ? AND last_name LIKE ?)'
-        @condition_opts = [ "%#{first_name}%", "%#{last_name}%" ]
-      else
-        @conditions = '(first_name LIKE ? OR last_name LIKE ?)'
-        @condition_opts = [ "%#{first_name}%", "%#{first_name}%" ]
-      end
-      
-      if @options.profile_id.to_i > 0
-        @conditions += " AND user_class_id = ?"
-        @condition_opts << @options.profile_id.to_i
-      end
-      
-      if params[:search][:where].blank? || params[:search][:where].to_s == 'all' 
-         paging,results = EndUser.paginate(:all,:conditions => [@conditions] + @condition_opts)
-      elsif params[:search][:where] == 'national'
-         @group = @suser.social_units(@options.social_unit_type_id)[0]
-         paging,results = EndUser.paginate(:all,:conditions => [@conditions + " AND social_unit_parent_id=?"] + @condition_opts + [@group ? @group.parent_id : 0] , :joins => ' LEFT OUTER JOIN social_unit_members ON (social_unit_members.end_user_id = end_users.id)')
-      else params[:search][:where] == 'member'
-         @group = @suser.social_units(@options.social_unit_type_id)[0]         
-         paging,results = EndUser.paginate(:all,:conditions => [@conditions + " AND social_unit_id = ?"] + @condition_opts + [@group ? @group.id : 0], :joins => ' LEFT OUTER JOIN social_unit_members ON (social_unit_members.end_user_id = end_users.id)' )
-      end
-      end_user_ids = []
-      results.each { |user| end_user_ids << user.id; }
-      groups = []
-      if results.length > 0
-        groups = SocialUnitMember.find(:all,:conditions => [ 'end_user_id IN (?) AND social_unit_members.social_unit_type_id=?',end_user_ids,@options.social_unit_type_id ], :include => :social_unit ).group_by(&:end_user_id)
-      end
-      
-      results.map! { |user| end_user_ids << user.id; { :user => user, :groups => groups[user.id]||[] } }
-    end
-    data = {:search => params[:search], :results => results, :paging => paging, :profile_page => @options.profile_page_url }
-    require_social_js
+      cnv, count = ContentNodeValue.search(Configuration.languages[0],params[:search][:name],
+                              { :conditions => { :content_type_id => @options.user_profile_type.content_type.id }})
 
-    render_paragraph :text => social_user_search_feature(data)
+      content_nodes = cnv.map(&:content_node)
+
+      @results = UserProfileEntry.find(:all, :conditions => { :id => content_nodes.map(&:node_id) }, :include => :end_user).reject { |e| e.end_user.blank? }
+
+    end
+
+    render_paragraph :text => social_user_search_feature
   end
 
   def user_edit
