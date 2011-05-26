@@ -55,7 +55,7 @@ class Social::UserRenderer < Social::SocialRenderer
       @group_types = @groups.group_by(&:social_unit_type_id)
       @primary_group = @group_types[@options.social_unit_type_id][0] if @group_types[@options.social_unit_type_id]
 
-      @is_group_admin = @primay_group.is_admin?(myself)
+      @is_group_admin = @primay_group.is_admin?(myself) if @primary_group
     else
       @groups = []
       set_page_connection(:group_list,[]) 
