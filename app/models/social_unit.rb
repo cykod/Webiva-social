@@ -139,6 +139,7 @@ class SocialUnit < DomainModel
       if self.social_unit_type.access_token
         usr.add_token!(self.social_unit_type.access_token,:target => self)
       end
+      usr.tag(self.name)
       return member
     else
       member.update_attributes(:role => role ? role : member.role, :status => status ? status : member.status )
@@ -154,6 +155,7 @@ class SocialUnit < DomainModel
     member = self.social_unit_members.find_by_end_user_id(usr.id)
     if member
       member.destroy
+      usr.remove_tags(self.name)
       true
     else
       false
