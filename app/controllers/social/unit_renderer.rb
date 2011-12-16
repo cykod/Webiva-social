@@ -210,6 +210,7 @@ class Social::UnitRenderer < Social::SocialRenderer
   
   def members
 
+    @expanded_list = handle_session_parameter(:expand,'0')
     conn_type,conn_id = page_connection
     @options = paragraph_options(:members)
 
@@ -248,7 +249,7 @@ class Social::UnitRenderer < Social::SocialRenderer
     
     require_ajax_js
 
-    data = { :admin => is_admin, :group => @group, :groups => @groups, :members => @members, :member_entries => @member_entries, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages  }
+    data = { :admin => is_admin, :group => @group, :groups => @groups, :members => @members, :member_entries => @member_entries, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages, :expanded => @expanded_list }
     render_paragraph :text => social_unit_members_feature(data)
   
   end

@@ -266,6 +266,13 @@ class Social::UnitFeature < ParagraphFeature
           end
         c.pagelist_tag('pages') { |t| data[:pages] }
         c.define_position_tags
+
+
+        c.expansion_tag("expanded") { |t| data[:expanded] == '1' }
+
+        c.define_tag('expand') do |t|
+          "<label><input type='checkbox' name='expand' onclick='document.location=\"?expand=\" + (this.checked ? 1 : 0)' #{"checked='checked'" if data[:expanded]=='1'} />#{t.expand}</label>"
+        end
     end
   end
   
