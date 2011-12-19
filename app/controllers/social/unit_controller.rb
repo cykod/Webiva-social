@@ -155,8 +155,6 @@ class Social::UnitController < ParagraphController
         fld(:alpha,:yes_no,:label => 'Show alphabetically (instead of by created)')
       )
         
-    
-    
   end
   
   class MemberLocationOptions < HashModel

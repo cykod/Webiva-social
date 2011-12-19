@@ -242,6 +242,9 @@ class Social::UnitRenderer < Social::SocialRenderer
       @member_ids = @user_members.map(&:end_user_id)
       @member_entries= UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id).index_by(&:end_user_id)
 
+      @user_profile_type = UserProfileType.find_by_id(@options.profile_type_id)   
+      @content_model =  @user_profile_type.content_model if @user_profile_type
+
       @members = @user_members.map { |m| @member_entries[m.end_user_id] }.compact
 
       is_admin = @group.is_admin?(myself)
@@ -249,7 +252,7 @@ class Social::UnitRenderer < Social::SocialRenderer
     
     require_ajax_js
 
-    data = { :admin => is_admin, :group => @group, :groups => @groups, :members => @members, :member_entries => @member_entries, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages, :expanded => @expanded_list }
+    data = { :admin => is_admin, :group => @group, :groups => @groups, :members => @members, :member_entries => @member_entries, :profile_url => SiteNode.node_path(options.profile_page_id), :pages => @pages, :expanded => @expanded_list, :user_profile_type => @user_profile_type, :content_model => @content_model }
     render_paragraph :text => social_unit_members_feature(data)
   
   end

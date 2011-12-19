@@ -233,6 +233,10 @@ class Social::UnitFeature < ParagraphFeature
       c.h_tag('group:group_name') { |t| t.locals.group.name }
       c.loop_tag('member') { |t| t.locals.group ? t.locals.group.end_users.map { |eu| data[:member_entries][eu.id] }.compact : data[:members] }
         c.define_user_details_tags("member", :local => 'member' )
+
+        c.expansion_tag('member:profile') { |t| t.locals.entry = t.locals.member.content_model_entry }
+        c.content_model_fields_value_tags('member:profile', data[:user_profile_type].display_content_model_fields) if data[:content_model]
+
         c.image_tag('member:img') { |t| t.locals.member.end_user.image  if t.locals.member.end_user }
         c.link_tag('member:detail') { |t| data[:profile_url].to_s + "/" + t.locals.member.url.to_s   if t.locals.member.end_user }
         c.expansion_tag('member:admin') { |t| data[:admin] }
