@@ -240,7 +240,8 @@ class Social::UnitRenderer < Social::SocialRenderer
       conditions['social_unit_id'] = @group.id unless @options.show_all
       @pages,@user_members = SocialUnitMember.paginate(page,:conditions => conditions,:per_page => options.per_page,:order => @options.alpha ? 'end_users.last_name, end_users.first_name' : 'social_unit_members.created_at DESC',:joins => :end_user)
       @member_ids = @user_members.map(&:end_user_id)
-      @member_entries= UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id).index_by(&:end_user_id)
+      @member_profile_entries = UserProfileEntry.fetch_entries(@member_ids,@options.profile_type_id)
+      @member_entries= @member_profile_entries.index_by(&:end_user_id)
 
       @user_profile_type = UserProfileType.find_by_id(@options.profile_type_id)   
       @content_model =  @user_profile_type.content_model if @user_profile_type
@@ -248,6 +249,36 @@ class Social::UnitRenderer < Social::SocialRenderer
       @members = @user_members.map { |m| @member_entries[m.end_user_id] }.compact
 
       is_admin = @group.is_admin?(myself)
+    end
+
+    if params[:download]
+      fields = @member_profile_entries[0].content_model.content_model_fields.select { |fld| fld.data_field? && fld.field != 'portrait_expres' }
+
+      file = DomainFile.export_to_csv(@user_members[0].end_user) do |csv|
+        csv << [ 'Email', 'First Name','Last Name', 'Gender', 'Tags' ] + fields.map(&:name)
+        @user_members.each do |member|
+          user = member.end_user
+          profile = @member_entries[user.id]
+          data = [ user.email,
+                   user.first_name,
+                   user.last_name,
+                   user.gender,
+                   user.tag_names ]
+          if profile
+            data += fields.map do |fld|
+              profile.content_model_entry.send(fld.field) 
+            end
+          end
+          csv << data
+        end
+      end
+      file = DomainFile.find(file[:domain_file_id])
+      output = "#{file.abs_storage_directory}/membres.xlsx"
+
+      `ssconvert --import-encoding=UTF8 #{file.filename} #{output}`
+      
+      return data_paragraph :disposition => 'attachment',  :file => output
+      
     end
     
     require_ajax_js
