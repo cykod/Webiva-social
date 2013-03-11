@@ -255,15 +255,16 @@ class Social::UnitRenderer < Social::SocialRenderer
       fields = @member_profile_entries[0].content_model.content_model_fields.select { |fld| fld.data_field? && fld.field != 'portrait_expres' }
 
       file = DomainFile.export_to_csv(@user_members[0].end_user) do |csv|
-        csv << [ 'Email', 'First Name','Last Name', 'Gender', 'Tags' ] + fields.map(&:name)
+        csv << [ 'Email', 'First Name','Last Name', 'Gender' ] + fields.map(&:name)
         @user_members.each do |member|
           user = member.end_user
           profile = @member_entries[user.id]
           data = [ user.email,
                    user.first_name,
                    user.last_name,
-                   user.gender,
-                   user.tag_names ]
+                   user.gender
+                  ]
+                   
           if profile
             data += fields.map do |fld|
               profile.content_model_entry.send(fld.field) 
@@ -273,11 +274,11 @@ class Social::UnitRenderer < Social::SocialRenderer
         end
       end
       file = DomainFile.find(file[:domain_file_id])
-      output = "#{file.abs_storage_directory}/membres.xlsx"
+      output = "#{file.abs_storage_directory}membres.xlsx"
 
-      `ssconvert --import-encoding=UTF8 #{file.filename} #{output}`
+      result = `ssconvert --import-encoding=UTF-8 #{file.filename} #{output}`
       
-      return data_paragraph :disposition => 'attachment',  :file => output
+      return data_paragraph :disposition => 'attachment',  :file => File.exists?(output) ? output : file.filename
       
     end
     
