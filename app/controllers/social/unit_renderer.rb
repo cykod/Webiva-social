@@ -274,9 +274,9 @@ class Social::UnitRenderer < Social::SocialRenderer
         end
       end
       file = DomainFile.find(file[:domain_file_id])
-      output = "#{file.abs_storage_directory}membres.xlsx"
+      output = "#{file.abs_storage_directory}membres.xls"
 
-      result = `ssconvert --import-encoding=UTF-8 #{file.filename} #{output}`
+      result = `ssconvert  --import-type=Gnumeric_stf:stf_csvtab --export-type=Gnumeric_Excel:excel_biff8 --import-encoding=UTF-8 #{file.filename} #{output}`
       
       return data_paragraph :disposition => 'attachment',  :file => File.exists?(output) ? output : file.filename
       
